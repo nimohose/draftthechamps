@@ -434,7 +434,7 @@ main.wide { max-width: 1680px; }
 /* ---------- game layout: plays left, vertical field right ---------- */
 .game-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, 560px); gap: 14px; align-items: start; }
 .game-left { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.game-right { position: sticky; top: calc(64px + env(safe-area-inset-top, 0px)); min-width: 0; }
+.game-right { position: sticky; top: calc(var(--topbar-h, 52px) + var(--sb-h, 0px) + 10px); min-width: 0; }
 .game-left .plays { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .game-left .log { max-height: 340px; }
 @media (max-width: 1100px) { .game-left .cats { grid-template-columns: repeat(4, 1fr); } .game-left .plays { grid-template-columns: 1fr; } }
@@ -484,6 +484,15 @@ main.wide { max-width: 1680px; }
 .sb-clockstate.live { color: #ff7b7b; }
 .sb-clockstate.live i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff5a5f; margin-right: 4px; vertical-align: 1px; animation: liveDot 1s ease-in-out infinite; }
 @keyframes liveDot { 50% { opacity: .25; } }
+
+/* scoreboard + down & distance stay locked under the top bar */
+.sb-sticky { position: sticky; top: var(--topbar-h, 52px); z-index: 15; display: flex; flex-direction: column; gap: 8px;
+  margin: 0 -20px; padding: 8px 20px 10px; background: var(--bg);
+  box-shadow: 0 10px 18px -10px rgba(0,0,0,.75); border-bottom: 1px solid var(--line); }
+@media (max-width: 560px) {
+  .sb-sticky { margin: 0 -16px; padding: 6px 16px 8px; gap: 6px; }
+  .sb-sticky .possn { display: none; }
+}
 
 </style>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
@@ -3619,12 +3628,25 @@ if (typeof module !== "undefined")
     return `<div class="lastplay ${head.kind}">${chip}<div class="lp-text">${esc(head.text)}</div></div>`;
   }
 
+  // The top bar and the scoreboard stay locked at the top while the page
+  // scrolls behind them; record their heights so other sticky parts and the
+  // scroll-to-field line up underneath.
+  function measureSticky() {
+    const bar = document.querySelector(".topbar");
+    const sb = document.getElementById("sbSticky");
+    const root = document.documentElement.style;
+    root.setProperty("--topbar-h", (bar ? Math.round(bar.getBoundingClientRect().height) : 52) + "px");
+    root.setProperty("--sb-h", (sb ? Math.round(sb.getBoundingClientRect().height) : 0) + "px");
+  }
+  window.addEventListener("resize", () => { if (state.screen === "game") measureSticky(); });
+
   function renderGame() {
     const g = state.game;
     const c = teamColors();
     const youPoss = g.poss === "you";
     $app.innerHTML = `
       <section class="game">
+        <div class="sb-sticky" id="sbSticky">
         <div class="scoreboard">
           <div class="sb-team you ${youPoss ? "poss" : ""}" style="--tc:${c.hex}">
             <div class="sb-name">${youPoss ? "🏈 " : ""}${esc(g.you.name)}</div>
@@ -3647,6 +3669,7 @@ if (typeof module !== "undefined")
           <span>Ball on ${esc(E.spotText(g, g.poss, g.ballOn))}</span>
           <span class="possn">${youPoss ? "🏈 Your ball" : `🏈 ${esc(g.opp.nick)} ball`}</span>
         </div>
+        </div>
         <div class="game-main">
           <div class="game-left">
             <div class="callpanel card" id="callpanel">${callPanel(g)}</div>
@@ -3664,6 +3687,7 @@ if (typeof module !== "undefined")
           </div>
         </div>
       </section>`;
+    measureSticky();
     const wrap = document.getElementById("fieldWrap");
     wrap.prepend(FIELD.ensureCanvas());
     FIELD.show(g, fieldInfo(g));
@@ -3930,7 +3954,8 @@ if (typeof module !== "undefined")
       const fw = document.getElementById("fieldWrap");
       if (!fw) return;
       const bar = document.querySelector(".topbar");
-      const top = (bar ? bar.getBoundingClientRect().height : 0) + 6;
+      const sb = document.getElementById("sbSticky");
+      const top = (bar ? bar.getBoundingClientRect().height : 0) + (sb ? sb.getBoundingClientRect().height : 0) + 6;
       const r = fw.getBoundingClientRect();
       if (!mobile && r.top >= top && r.bottom <= window.innerHeight) return;
       const y = Math.max(0, r.top + window.scrollY - top);
