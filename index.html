@@ -453,6 +453,33 @@ main.wide { max-width: 1680px; }
 .ig-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .ig-btn svg { width: 22px; height: 22px; }
 
+/* ---------- formation-first play calling ---------- */
+.play-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.play-head-title { display: flex; align-items: center; gap: 8px; }
+.play-head-title i { font-style: normal; color: var(--gold); font-size: 22px; }
+.play-head-title h3 { font-family: var(--display); font-size: 30px; letter-spacing: 1px; line-height: 1; }
+.back-btn, .reroll-btn { white-space: nowrap; }
+.reroll-btn { border-color: rgba(245,179,1,.55); color: var(--gold2); }
+
+/* ---------- slimmer scoreboard ---------- */
+.sb-team { padding: 5px 14px; border-top-width: 3px; }
+.sb-name { font-size: 20px; }
+.sb-score { font-size: 38px; }
+.sb-mid { padding: 3px 16px; }
+.sb-round { font-size: 11px; }
+.sb-clock { font-size: 34px; }
+.sb-clockstate { font-size: 11px; }
+.tos i { height: 4px; }
+.situation { font-size: 15px; gap: 14px; }
+.situation .dd { font-size: 20px; padding: 0 10px; }
+@media (max-width: 560px) {
+  .sb-team, .sb-team.opp { padding: 4px 10px; }
+  .sb-name { font-size: 15px; }
+  .sb-score { font-size: 28px; }
+  .sb-clock { font-size: 26px; }
+  .play-head-title h3 { font-size: 24px; }
+}
+
 </style>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
 </head>
@@ -921,7 +948,8 @@ if (typeof module !== "undefined") module.exports = { PLAYERS, POS_NAMES };
 /* =====================================================================
    DRAFT THE CHAMPS — PLAYBOOK
    ---------------------------------------------------------------------
-   Every play-call type has 3 real football plays. Each play is built to
+   Every formation (play-call type) has 9 real football plays; the game
+   deals 3 of them at random each time, with a reroll. Each play is built to
    beat certain defenses and struggles against others, the same way real
    concepts do (Smash beats Cover 2, Four Verticals stresses Cover 3,
    screens punish blitzes, etc.).
@@ -1125,6 +1153,112 @@ const DEFENSE_PLAYBOOK = [
   },
 ];
 
+// ---------------------------------------------------------------------
+// The rest of each formation's 9 plays. Each one starts from one of the
+// three plays above (its "base", which also drives the field animation)
+// and changes the numbers, matchups and description.
+// ---------------------------------------------------------------------
+(function expandPlaybook() {
+  const find = (book, id) => { for (const c of book) for (const p of c.plays) if (p.id === id) return p; };
+  // offense variant: [category, baseId, id, name, desc, beats, weak, overrides]
+  const OFF = [
+    ["inside", "iz", "duo", "Duo", "Double-team blocks at the point of attack, back runs downhill behind them.", ["c1", "c3"], ["box", "blitz"], { run: 4.0, sd: 3.0, big: 0.04 }],
+    ["inside", "iz", "trap", "Trap", "Let the defensive tackle in free, then kick him out with a pulling guard.", ["blitz", "c0"], ["box", "c2"], { run: 4.3, sd: 4.2, big: 0.06 }],
+    ["inside", "power", "iso", "Iso (Lead)", "Fullback leads through the hole and takes on the linebacker.", ["c2", "c4"], ["blitz", "box"], { run: 3.8, sd: 2.6, shortYd: 1.0 }],
+    ["inside", "power", "sneak", "QB Sneak", "Quarterback follows the center for a yard. Short yardage only.", ["c3", "c2", "prev"], ["box"], { run: 1.6, sd: 1.2, big: 0.0, shortYd: 1.8, carrier: "QB" }],
+    ["inside", "iz", "splitzone", "Split Zone", "Zone one way while the tight end cuts back across to seal the backside.", ["c4", "c2m"], ["box", "c0"], { run: 4.4, sd: 4.0, big: 0.06 }],
+    ["inside", "power", "wham", "Wham", "Tight end motions in and blasts the nose tackle from the side.", ["blitz", "c1"], ["box", "c3"], { run: 4.0, sd: 3.4 }],
+
+    ["outside", "oz", "pinpull", "Pin & Pull", "Linemen pin the defenders inside and pull outside to lead the sweep.", ["c2", "c1"], ["c3", "box"], { run: 4.5, sd: 5.5, big: 0.07, oob: 0.3 }],
+    ["outside", "toss", "jet", "Jet Sweep", "Slot receiver in full-speed motion takes the handoff around the edge.", ["box", "c1"], ["c4", "c3"], { run: 4.8, sd: 7, big: 0.1, oob: 0.45, carrier: "WR2" }],
+    ["outside", "oz", "zoneread", "Zone Read", "QB reads the defensive end: hand it off or pull it and run.", ["blitz", "c1", "c0"], ["c3", "box"], { run: 4.6, sd: 5.5, big: 0.08, oob: 0.2 }],
+    ["outside", "toss", "speedopt", "Speed Option", "QB attacks the edge and pitches to the back at the last second.", ["c1", "c2m"], ["c3", "blitz"], { run: 4.4, sd: 7, big: 0.09, oob: 0.4 }],
+    ["outside", "counter", "bucksweep", "Buck Sweep", "Both guards pull and lead the back around the end.", ["c4", "c2"], ["box", "blitz"], { run: 4.4, sd: 5.5, oob: 0.25 }],
+    ["outside", "toss", "sbr", "Student Body Right", "Everybody pulls to the right. Old-school power sweep.", ["c2", "c2m", "prev"], ["c3", "c1"], { run: 4.2, sd: 6, big: 0.07, oob: 0.35 }],
+
+    ["quick", "stick", "spacing", "Spacing", "Five receivers spread across the field at 5 yards. Someone is always open.", ["c3", "c4", "c2"], ["c1", "c2m"], { comp: 0.76, air: 5 }],
+    ["quick", "stick", "snag", "Snag", "Corner, snag and flat routes triangle the flat defender.", ["c3", "c2"], ["c1", "c0"], { comp: 0.72, air: 6, oob: 0.15 }],
+    ["quick", "slant", "dslant", "Double Slants", "Two slants stacked on one side. Built to beat press man.", ["c1", "c0", "blitz"], ["c2", "c4"], { comp: 0.70, air: 7 }],
+    ["quick", "hitch", "curls", "All Curls", "Every receiver runs a curl at 8 yards and sits in the zone.", ["c3", "prev", "c4"], ["c2m", "c1"], { comp: 0.68, air: 8 }],
+    ["quick", "stick", "yoption", "Y-Option", "Slot receiver reads his defender and breaks in or out.", ["c1", "c3", "c4"], ["c2m"], { comp: 0.73, air: 6, tgt: { TE: 3, WR2: 2 } }],
+    ["quick", "hitch", "bsfade", "Back-Shoulder Fade", "Throw it behind the corner where only your receiver can catch it.", ["c1", "c0"], ["c2", "c4"], { comp: 0.55, air: 12, sd: 3, oob: 0.5, int: 0.035, tgt: { WR1: 4 } }],
+
+    ["sideline", "smash", "flood", "Flood (Sail)", "Go, out and flat routes at three levels on one side.", ["c3", "c4"], ["c2", "c2m"], { comp: 0.6, air: 12 }],
+    ["sideline", "smash", "cornerflat", "Corner-Flat", "Corner route over a flat route. High-low the cornerback.", ["c2", "c3"], ["c4", "c1"], { comp: 0.58, air: 15 }],
+    ["sideline", "comeback", "outup", "Out-and-Up", "Fake the out, then turn it up the sideline.", ["c1", "c3", "c0"], ["c2", "prev"], { comp: 0.42, air: 22, sd: 6, oob: 0.5, int: 0.04, depth: "deep" }],
+    ["sideline", "outs", "wheel", "RB Wheel", "Back runs to the flat, then turns up the sideline.", ["c1", "blitz"], ["c3", "c2"], { comp: 0.55, air: 14, sd: 5, oob: 0.55, tgt: { RB: 3 }, depth: "mid" }],
+    ["sideline", "outs", "dblout", "Double Outs", "Two out routes at 6 and 12 yards on the same side.", ["c3", "prev", "c4"], ["c2", "c1"], { comp: 0.64, air: 9, oob: 0.8 }],
+    ["sideline", "comeback", "fadestop", "Fade-Stop", "Sell the fade, then stop at 12 yards by the sideline.", ["c1", "prev"], ["c2", "c2m"], { comp: 0.6, air: 11, oob: 0.6 }],
+
+    ["mid", "mesh", "drive", "Drive", "Shallow cross underneath a 12-yard dig.", ["c1", "c3", "c0"], ["c4", "c2m"], { comp: 0.64, air: 9 }],
+    ["mid", "mesh", "shallow", "Shallow Cross", "Receiver drags across 3 yards deep and keeps running.", ["c1", "c0", "blitz"], ["c3", "c2"], { comp: 0.7, air: 5, yac: 6, yacSd: 5 }],
+    ["mid", "dagger", "dig", "Dig", "Square-in at 15 yards, right behind the linebackers.", ["c3", "c4"], ["c2m", "c1"], { comp: 0.57, air: 15 }],
+    ["mid", "dagger", "seam", "Y-Seam", "Tight end splits the safeties straight up the middle.", ["c2", "c3"], ["c4", "c1"], { comp: 0.5, air: 19, int: 0.045, tgt: { TE: 4, WR2: 1 } }],
+    ["mid", "levels", "follow", "Follow", "Two crossers on the same path a few yards apart.", ["c1", "c2m"], ["c3", "c4"], { comp: 0.62, air: 11 }],
+    ["mid", "levels", "drift", "PA Drift", "Play-action, then a quick in-breaker behind the linebackers.", ["box", "c3"], ["c2", "prev"], { comp: 0.62, air: 13, sack: 0.06 }],
+
+    ["deep", "mills", "postcorner", "Post-Corner", "Break toward the post, then bend back to the corner.", ["c3", "c1"], ["c2", "c4"], { comp: 0.38, air: 26, oob: 0.3 }],
+    ["deep", "verts", "sluggo", "Sluggo", "Slant-and-go: fake the slant and run past the jumping corner.", ["c1", "c0", "blitz"], ["c3", "prev"], { comp: 0.36, air: 30, int: 0.04 }],
+    ["deep", "yankee", "flea", "Flea Flicker", "Hand off, pitch it back to the QB, then launch it deep.", ["box", "c1", "c3"], ["blitz", "prev"], { comp: 0.36, air: 34, sack: 0.1, int: 0.05 }],
+    ["deep", "yankee", "padeep", "PA Deep Over", "Play-action bootleg with a deep crossing route.", ["box", "c3"], ["c2", "c4"], { comp: 0.45, air: 24 }],
+    ["deep", "verts", "streak", "Go Route", "Your best receiver just runs straight past his man.", ["c1", "c0"], ["c2", "c4", "prev"], { comp: 0.35, air: 32, tgt: { WR1: 5 } }],
+    ["deep", "mills", "scissors", "Scissors", "Post and corner routes cross to confuse the safeties.", ["c4", "c2"], ["c1", "prev"], { comp: 0.4, air: 25 }],
+
+    ["screen", "rbscreen", "slip", "TE Slip Screen", "Tight end chips, slips out and catches it behind the line.", ["blitz", "c3"], ["c2", "box"], { tgt: { TE: 1 } }],
+    ["screen", "rbscreen", "midscreen", "Middle Screen", "Back catches it in the middle behind three linemen.", ["blitz", "c0", "c1"], ["c4", "c3"], { yac: 7 }],
+    ["screen", "bubble", "swing", "Swing Pass", "Back swings out to the flat for a quick catch in space.", ["c1", "box"], ["c3", "c2"], { tgt: { RB: 1 }, oob: 0.3 }],
+    ["screen", "tunnel", "jailbreak", "Jailbreak Screen", "Linemen release at the snap to form a wall for the receiver.", ["blitz", "c0"], ["c3", "c2"], { yac: 7, yacSd: 9, big: 0.08 }],
+    ["screen", "rbscreen", "shovel", "Shovel Pass", "Little underhand flip to the back right behind the line.", ["blitz", "prev"], ["box", "c1"], { comp: 0.88, air: 0, yac: 5 }],
+    ["screen", "bubble", "smoke", "WR Smoke Screen", "Instant throw to the outside receiver, one block, go.", ["c4", "prev", "box"], ["c1", "c2"], { tgt: { WR1: 1 } }],
+  ];
+  for (const [cat, baseId, id, name, desc, beats, weak, over] of OFF) {
+    const base = find(OFFENSE_PLAYBOOK, baseId);
+    const play = { ...base, anim: base.anim || base.id, ...over, id, name, desc, beats, weak };
+    OFFENSE_PLAYBOOK.find((c) => c.id === cat).plays.push(play);
+  }
+
+  // defense: [category, id, name, tags, rush, run, [short, mid, deep], desc, soft]
+  const DEF = [
+    ["blitz", "cornerblitz", "Corner Blitz", ["c3", "blitz"], 0.10, -0.8, [-0.03, 0.0, 0.02], "Cornerback comes off the edge while a safety rotates over the top."],
+    ["blitz", "safetyblitz", "Safety Blitz", ["c1", "blitz"], 0.10, -1.0, [-0.02, 0.02, 0.05], "A safety creeps down and shoots the gap at the snap."],
+    ["blitz", "overload", "Overload Blitz", ["c0", "blitz"], 0.14, -0.9, [-0.04, -0.02, 0.07], "Send more rushers to one side than the line can block."],
+    ["blitz", "zoneblitz", "Zone Blitz", ["c3", "blitz"], 0.07, -0.5, [-0.06, -0.03, -0.02], "Bring a linebacker and drop a defensive end into coverage."],
+    ["blitz", "pinch", "Pinch Blitz", ["blitz", "box", "c1"], 0.08, -1.6, [0.0, 0.02, 0.04], "Linemen pinch inside while linebackers fire through the gaps."],
+    ["blitz", "nickel", "Nickel Blitz", ["c1", "blitz"], 0.09, -0.6, [-0.05, -0.02, 0.03], "The slot corner blitzes from the inside. Fast and hard to see."],
+
+    ["man", "lurk", "Cover 1 Lurk", ["c1"], 0.02, -0.4, [-0.05, -0.08, -0.01], "Man coverage with a safety lurking under crossing routes."],
+    ["man", "bracket", "Bracket", ["c1", "c2m"], 0.0, 0.4, [-0.04, -0.06, -0.08], "Double their best receiver with a corner underneath and a safety over the top."],
+    ["man", "manfree", "Man Free", ["c1"], 0.02, -0.3, [-0.06, -0.04, -0.03], "Straight man coverage with one free safety in the middle of the field."],
+    ["man", "spy", "Cover 0 Spy", ["c0"], 0.03, -0.6, [-0.06, -0.04, 0.06], "Man on everyone, plus a linebacker spying the quarterback."],
+    ["man", "banjo", "Banjo", ["c1"], 0.01, -0.2, [-0.07, -0.05, 0.0], "Two defenders switch receivers when routes cross. Kills rub routes."],
+    ["man", "hole", "Cover 1 Hole", ["c1"], 0.02, -0.3, [-0.03, -0.07, -0.03], "Man underneath with a linebacker sitting in the middle hole."],
+
+    ["zone", "tampa2", "Tampa 2", ["c2"], 0.01, 0.2, [0.02, -0.06, -0.08], "Cover 2 with the middle linebacker sprinting deep to close the seam."],
+    ["zone", "cloud", "Cover 3 Cloud", ["c3", "c2"], 0.01, 0.0, [-0.02, -0.02, -0.06], "Corner squats to one side (cloud) with three deep behind."],
+    ["zone", "invert", "Cover 2 Invert", ["c2"], 0.02, -0.2, [0.0, -0.03, -0.06], "Corners bail deep and the safeties come down. Disguises Cover 2."],
+    ["zone", "palms", "Palms (2-Read)", ["c4", "c2"], 0.0, 0.0, [0.0, -0.05, -0.08], "Corner and safety read the No. 2 receiver and trade off routes."],
+    ["zone", "cover9", "Cover 9 Match", ["c3", "c1"], 0.01, -0.3, [-0.02, -0.05, -0.05], "Cover 3 that turns into man once routes declare."],
+    ["zone", "c4drop", "Quarters Drop", ["c4"], -0.01, 0.4, [0.04, -0.06, -0.11], "Rush four, drop seven into deep quarters. Nothing over the top."],
+
+    ["prevent", "qprev", "Quarter Prevent", ["prev", "c4"], -0.04, 2.2, [0.09, 0.03, -0.2], "Four deep, everyone else soft. Give up the short stuff and tackle.", 2],
+    ["prevent", "c2deep", "Cover 2 Deep", ["c2", "prev"], -0.02, 1.2, [0.06, -0.02, -0.13], "Safeties line up 20 yards deep and keep everything in front.", 1],
+    ["prevent", "threedeep", "Three-Deep Prevent", ["prev", "c3"], -0.03, 1.6, [0.06, 0.0, -0.16], "Three defenders sit at the goal line; the rest rally to the ball.", 2],
+    ["prevent", "prevman", "Prevent Man", ["prev", "c1"], -0.02, 1.4, [0.03, -0.03, -0.14], "Man coverage with a 10-yard cushion and two deep safeties.", 1],
+    ["prevent", "jumpball", "Hail Mary D", ["prev"], -0.05, 2.5, [0.12, 0.06, -0.24], "Everyone deep. Knock down anything thrown into the end zone.", 3],
+    ["prevent", "bignickel", "Big Nickel", ["c4", "prev"], -0.01, 0.8, [0.04, -0.05, -0.1], "Three safeties on the field to stop the big play.", 1],
+
+    ["runstop", "runblitz", "Run Blitz", ["box", "blitz"], 0.06, -2.4, [0.04, 0.05, 0.07], "Linebackers fire into the backfield at the snap."],
+    ["runstop", "stack", "Stack Front", ["box", "c3"], 0.02, -1.6, [0.03, 0.02, 0.01], "Linebackers stacked behind the linemen to fill any gap."],
+    ["runstop", "under", "Under Front", ["box", "c1"], 0.03, -1.9, [0.02, 0.03, 0.04], "Line shifts toward the weak side to clog the middle."],
+    ["runstop", "spill", "Spill & Squeeze", ["box", "c2"], 0.01, -1.4, [0.02, 0.0, -0.02], "Force the run wide to the sideline and chase it down."],
+    ["runstop", "okie", "Okie Front", ["box", "c1"], 0.03, -1.7, [0.02, 0.04, 0.03], "3-4 front with a nose over the center and two-gapping ends."],
+    ["runstop", "robberbox", "Robber Box", ["box", "c1"], 0.02, -1.8, [0.0, 0.01, 0.04], "Safety walks down as an extra run defender and robs short throws."],
+  ];
+  for (const [cat, id, name, tags, rush, run, c, desc, soft] of DEF) {
+    DEFENSE_PLAYBOOK.find((x) => x.id === cat).plays.push({ id, name, tags, rush, run, comp: { short: c[0], mid: c[1], deep: c[2] }, desc, soft: soft || 0 });
+  }
+})();
+
 const ALL_OFF_PLAYS = {};
 OFFENSE_PLAYBOOK.forEach((c) => c.plays.forEach((p) => (ALL_OFF_PLAYS[p.id] = { ...p, cat: c.id })));
 const ALL_DEF_PLAYS = {};
@@ -1294,7 +1428,8 @@ if (typeof module !== "undefined")
   function resolveRun(s, off, def, O, D) {
     const ou = O.units, du = D.units;
     const m = matchup(off, def);
-    const runOff = 0.55 * ou.RB + 0.45 * ou.OL;
+    const carrierKey = off.carrier || "RB";
+    const runOff = 0.55 * (ou[carrierKey] ?? ou.RB) + 0.45 * ou.OL;
     const runDef = 0.5 * du.DL + 0.35 * du.LB + 0.15 * du.S;
     const diff = runOff - runDef;
     let mean = off.run + def.run + diff * 0.07 + m * 1.6;
@@ -1308,7 +1443,7 @@ if (typeof module !== "undefined")
     }
     const fumble = rand() < clamp(0.012 - diff * 0.0004 + (m < 0 ? 0.006 : 0), 0.003, 0.03);
     const oob = yards > 0 && rand() < off.oob;
-    const rb = nameOf(O, "RB", "RB");
+    const rb = nameOf(O, carrierKey, carrierKey.replace(/\d/, ""));
     return { kind: "run", yards, fumble, oob, big, m, time: randInt(5, 7), rb };
   }
 
@@ -1869,23 +2004,23 @@ if (typeof module !== "undefined")
 
   // ---------- formations (play-local) ----------
   const OFF_SET = {
-    LT: [-0.8, -3.3], LG: [-0.6, -1.65], C: [-0.5, 0], RG: [-0.6, 1.65], RT: [-0.8, 3.3],
-    TE: [-0.9, 5.0], QB: [-4.5, 0], RB: [-7, 0], WR1: [-0.8, -20], WR2: [-0.8, 19], WR3: [-1.3, -12],
+    LT: [-1.0, -5.0], LG: [-0.8, -2.5], C: [-0.7, 0], RG: [-0.8, 2.5], RT: [-1.0, 5.0],
+    TE: [-1.2, 7.6], QB: [-4.8, 0], RB: [-7.8, 0], WR1: [-1, -20.5], WR2: [-1, 19.5], WR3: [-1.6, -13],
   };
   const OFF_POS = { LT: "OL", LG: "OL", C: "OL", RG: "OL", RT: "OL", TE: "TE", QB: "QB", RB: "RB", WR1: "WR", WR2: "WR", WR3: "WR" };
   function defSet(tags = []) {
     const d = {
-      DE1: [1.1, -4.7], DT1: [1.1, -1.35], DT2: [1.1, 1.35], DE2: [1.1, 4.7],
-      LB1: [5, -4.5], MLB: [5, 0], LB2: [5, 4.5], CB1: [7, -20], CB2: [7, 19], SS: [11, 6], FS: [14, -6],
+      DE1: [2.0, -6.6], DT1: [2.0, -2.5], DT2: [2.0, 2.5], DE2: [2.0, 6.6],
+      LB1: [6.2, -6.5], MLB: [6.2, 0], LB2: [6.2, 6.5], CB1: [7.5, -20.5], CB2: [7.5, 19.5], SS: [12.5, 8], FS: [15.5, -8],
     };
     const has = (t) => tags.includes(t);
-    if (has("c2") || has("c4") || has("c2m")) { d.SS = [13, 10]; d.FS = [13, -10]; }
-    if (has("c3")) { d.FS = [15, 0]; d.SS = [7, 7]; }
-    if (has("box")) { d.SS = [5, 6.5]; d.LB1 = [3.6, -4]; d.MLB = [3.6, 0]; d.LB2 = [3.6, 4]; d.CB1 = [4, -19]; d.CB2 = [4, 18]; }
-    if (has("blitz")) { d.LB1 = [1.8, -2.8]; d.MLB = [2, 0.6]; }
-    if (has("c1") || has("c0")) { d.CB1 = [1.5, -20]; d.CB2 = [1.5, 19]; }
-    if (has("prev")) { d.CB1 = [11, -18]; d.CB2 = [11, 17]; d.SS = [20, 8]; d.FS = [22, -8]; d.LB1 = [8, -6]; d.LB2 = [8, 6]; d.MLB = [9, 0]; }
-    if (has("c0")) { d.FS = [8, -2]; }
+    if (has("c2") || has("c4") || has("c2m")) { d.SS = [14, 11]; d.FS = [14, -11]; }
+    if (has("c3")) { d.FS = [16, 0]; d.SS = [8, 9]; }
+    if (has("box")) { d.SS = [5.5, 9.5]; d.LB1 = [4.6, -5.5]; d.MLB = [4.6, 0]; d.LB2 = [4.6, 5.5]; d.CB1 = [4.5, -20]; d.CB2 = [4.5, 19]; }
+    if (has("blitz")) { d.LB1 = [2.8, -4.2]; d.MLB = [3.0, 1.2]; }
+    if (has("c1") || has("c0")) { d.CB1 = [2.2, -20.5]; d.CB2 = [2.2, 19.5]; }
+    if (has("prev")) { d.CB1 = [12, -18]; d.CB2 = [12, 17]; d.SS = [21, 9]; d.FS = [23, -9]; d.LB1 = [9, -8]; d.LB2 = [9, 8]; d.MLB = [10, 0]; }
+    if (has("c0")) { d.FS = [9, -3]; }
     return d;
   }
   const DEF_POS = { DE1: "DL", DT1: "DL", DT2: "DL", DE2: "DL", LB1: "LB", MLB: "LB", LB2: "LB", CB1: "CB", CB2: "CB", SS: "S", FS: "S" };
@@ -1932,7 +2067,8 @@ if (typeof module !== "undefined")
     let vw = sh * FW / sw;                 // yards of field length in view
     if (vw > 120) { vw = 120; sh = 120 * sw / FW; }
     sh = Math.round(sh);
-    view.vw = vw;
+    view.baseVw = vw;
+    if (!view.anim) view.vw = vw;
     view.dpr = window.devicePixelRatio || 1;
     if (c.width !== Math.round(sw * view.dpr) || c.height !== Math.round(sh * view.dpr)) {
       c.width = Math.round(sw * view.dpr);
@@ -1947,9 +2083,12 @@ if (typeof module !== "undefined")
   function scr(u, v) { return [v, view.sh - u]; }
 
   // Yards -> pixels. Height always shows the full field width.
-  function sc() { return view.h / FW; }
-  function px(X) { return (X - (view.camX - view.vw / 2)) * (view.w / view.vw); }
-  function py(Y) { return Y * sc(); }
+  // One scale for both directions; when zoomed out the field gets narrower
+  // than the canvas and is centered (stands on both sides).
+  function sc() { return view.w / view.vw; }
+  function oy() { return Math.max(0, (view.h - FW * sc()) / 2); }
+  function px(X) { return (X - (view.camX - view.vw / 2)) * sc(); }
+  function py(Y) { return oy() + Y * sc(); }
   function setCam(targetX, snap) {
     const half = view.vw / 2;
     const want = view.vw >= 119.5 ? 50 : clamp(targetX, -10 + half, 110 - half);
@@ -1962,16 +2101,18 @@ if (typeof module !== "undefined")
     c.save();
     c.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
     c.clearRect(0, 0, view.sw, view.sh);
+    c.fillStyle = "#16241b"; c.fillRect(0, 0, view.sw, view.sh);
     vt(c);
+    const top = py(0), fh = FW * s;
     // turf stripes
     for (let x = 0; x < 100; x += 5) {
       c.fillStyle = (x / 5) % 2 ? "#2c7a43" : "#2f8247";
-      c.fillRect(px(x), 0, 5 * k + 1, view.h);
+      c.fillRect(px(x), top, 5 * k + 1, fh);
     }
     // end zones
-    c.fillStyle = info.youColor; c.fillRect(px(-10), 0, 10 * k, view.h);
-    c.fillStyle = info.oppColor; c.fillRect(px(100), 0, 10 * k, view.h);
-    c.fillStyle = "rgba(0,0,0,.12)"; c.fillRect(px(-10), 0, 10 * k, view.h); c.fillRect(px(100), 0, 10 * k, view.h);
+    c.fillStyle = info.youColor; c.fillRect(px(-10), top, 10 * k, fh);
+    c.fillStyle = info.oppColor; c.fillRect(px(100), top, 10 * k, fh);
+    c.fillStyle = "rgba(0,0,0,.12)"; c.fillRect(px(-10), top, 10 * k, fh); c.fillRect(px(100), top, 10 * k, fh);
     // end zone names
     const ezFont = Math.max(12, Math.min(6 * k, 5.2 * s));
     c.font = `${ezFont}px "Bebas Neue", Impact, sans-serif`;
@@ -1984,7 +2125,7 @@ if (typeof module !== "undefined")
     for (let x = 0; x <= 100; x += 5) {
       c.lineWidth = x === 0 || x === 100 ? 2.5 : x % 10 === 0 ? 1.6 : 1;
       c.globalAlpha = x % 10 === 0 || x === 0 || x === 100 ? 0.8 : 0.45;
-      c.beginPath(); c.moveTo(px(x), 0); c.lineTo(px(x), view.h); c.stroke();
+      c.beginPath(); c.moveTo(px(x), top); c.lineTo(px(x), top + fh); c.stroke();
     }
     c.globalAlpha = 1;
     // hash marks + sideline ticks
@@ -2003,6 +2144,9 @@ if (typeof module !== "undefined")
       const lab = String(x <= 50 ? x : 100 - x);
       c.fillText(lab, px(x), py(9)); c.save(); c.translate(px(x), py(FW - 9)); c.rotate(Math.PI); c.fillText(lab, 0, 0); c.restore();
     }
+    // sidelines
+    c.strokeStyle = "rgba(255,255,255,.9)"; c.lineWidth = 2;
+    c.strokeRect(px(-10), top, 120 * k, fh);
     // goal posts (top-down: crossbar seen as a short bar at the end line)
     c.strokeStyle = "#ffd400"; c.lineWidth = Math.max(2, 0.35 * k);
     for (const X of [-10, 110]) { c.beginPath(); c.moveTo(px(X), py(MID - 3.1)); c.lineTo(px(X), py(MID + 3.1)); c.stroke(); }
@@ -2012,8 +2156,9 @@ if (typeof module !== "undefined")
   function drawLines(losX, fdX) {
     const c = view.ctx;
     c.save(); vt(c);
-    c.fillStyle = "rgba(62,160,255,.9)"; c.fillRect(px(losX) - 1.5, 0, 3, view.h);
-    if (fdX !== null && fdX > 0 && fdX < 100) { c.fillStyle = "rgba(255,212,0,.95)"; c.fillRect(px(fdX) - 1.5, 0, 3, view.h); }
+    const top = py(0), fh = FW * sc();
+    c.fillStyle = "rgba(62,160,255,.9)"; c.fillRect(px(losX) - 1.5, top, 3, fh);
+    if (fdX !== null && fdX > 0 && fdX < 100) { c.fillStyle = "rgba(255,212,0,.95)"; c.fillRect(px(fdX) - 1.5, top, 3, fh); }
     c.restore();
   }
 
@@ -2058,7 +2203,7 @@ if (typeof module !== "undefined")
 
   function drawPlayer(p, X, Y, opts) {
     const c = view.ctx, s = sc();
-    const r = Math.max(11, 1.35 * Math.min(s, view.w / view.vw));
+    const r = Math.max(view.vw > view.baseVw + 5 ? 6 : 8, 1.05 * Math.min(s, view.w / view.vw));
     const vx = px(X), vy = py(Y);
     if (vx < -30 || vx > view.w + 30) return;
     const [x, y] = scr(vx, vy);
@@ -2296,8 +2441,9 @@ if (typeof module !== "undefined")
     // ================= RUN =================
     if (kind === "run") {
       const cat = offPlay ? offPlay.cat : "inside";
-      const id = offPlay ? offPlay.id : "iz";
-      const side = rand() < 0.5 ? -1 : 1;
+      const id = offPlay ? offPlay.anim || offPlay.id : "iz";
+      const carrier = offPlay && offPlay.carrier === "QB" ? "oQB" : offPlay && offPlay.carrier === "WR2" ? "oWR2" : "oRB";
+      const side = carrier === "oWR2" ? -1 : rand() < 0.5 ? -1 : 1;
       const dEnd = endLocal(last.yards);
       const outside = cat === "outside";
       let yEnd = outside ? side * rr(8, 15) : side * rr(0.5, 4);
@@ -2306,7 +2452,7 @@ if (typeof module !== "undefined")
       const tMesh = id === "draw" ? 0.26 : 0.16;
       const tEnd = 0.84;
       qb.path = [[0, -4.5, 0], [tMesh, -4.8, side * 0.4], [0.55, -6.5, -side * 1.5], [1, -6.8, -side * 1.6]];
-      const pts = [[0, -7, 0]];
+      const pts = [[0, -7.8, 0]];
       if (id === "counter") pts.push([0.1, -6.6, -side * 1.6]);
       if (id === "toss") pts.push([0.22, -5.5, side * 4]);
       else pts.push([tMesh, -4.9, side * 0.5]);
@@ -2316,6 +2462,18 @@ if (typeof module !== "undefined")
       pts.push([tEnd, dEnd, yEnd]);
       pts.push([1, dEnd + (td || last.oob ? 1.5 : 0.4), yEnd + (last.oob ? side * 1 : 0)]);
       rb.path = pts;
+      if (carrier === "oQB") {
+        // QB sneak: QB under center follows the center; the back stays home
+        qb.start = [-1.2, 0];
+        qb.path = [[0, -1.2, 0], [0.3, 0.2, 0.3], [tEnd, dEnd, rr(-0.8, 0.8)], [1, dEnd + 0.3, 0]];
+        rb.path = [[0, -7, 0], [0.3, -5.5, 1.5]];
+      } else if (carrier === "oWR2") {
+        // Jet sweep: slot receiver in motion takes it around the far edge
+        const w = actors.oWR2;
+        w.path = [[0, w.start[0], w.start[1]], [tMesh, -4.6, 0.8], [0.4, -1.5, -8], [tEnd, dEnd, yEnd], [1, dEnd + 0.4, yEnd]];
+        rb.path = [[0, -7, 0], [0.3, -6, 3], [1, -5, 6]];
+        qb.path = [[0, -4.5, 0], [tMesh, -4.8, 0.3], [1, -5.5, 2]];
+      }
       linePush(1.4, 0.3, outside ? side : 0);
       // TE blocks, WRs stalk-block
       actors.oTE.path = [[0, ...actors.oTE.start], [0.35, 1.8, actors.oTE.start[1] + side * 0.4]];
@@ -2325,18 +2483,19 @@ if (typeof module !== "undefined")
       const target = [dEnd, yEnd];
       const tk = pursue(target, 0.3, tEnd, null, td ? ["dCB1", "dCB2", "dSS", "dFS", "dLB1", "dMLB", "dLB2", "dDE1", "dDT1", "dDT2", "dDE2"].slice(0, 0) : []);
       if (td) { for (const a of Object.values(actors)) if (a.team === "def") { const L = a.path[a.path.length - 1]; a.path[a.path.length - 1] = [1, L[1] - 3, L[2]]; } }
-      ball = [snapSeg("oQB"), { t0: 0.06, t1: id === "toss" ? 0.14 : tMesh, type: "carry", actor: "oQB" }];
-      if (id === "toss") ball.push({ t0: 0.14, t1: 0.22, type: "air", fromActor: "oQB", toActor: "oRB", h: 1.5 });
-      ball.push({ t0: id === "toss" ? 0.22 : tMesh, t1: 1, type: "carry", actor: "oRB" });
-      labelIds = ["oRB"];
+      const tossLike = id === "toss" && carrier === "oRB";
+      ball = [snapSeg("oQB"), { t0: 0.06, t1: carrier === "oQB" ? 1 : tossLike ? 0.14 : tMesh, type: "carry", actor: "oQB" }];
+      if (tossLike) ball.push({ t0: 0.14, t1: 0.22, type: "air", fromActor: "oQB", toActor: "oRB", h: 1.5 });
+      if (carrier !== "oQB") ball.push({ t0: tossLike ? 0.22 : tMesh, t1: 1, type: "carry", actor: carrier });
+      labelIds = [carrier];
       if (last.fumble && !td) {
         ball[ball.length - 1].t1 = tEnd;
         const rec = [dEnd + rr(-1, 1.5), yEnd + rr(-2, 2)];
-        ball.push({ t0: tEnd, t1: 0.95, type: "air", fromActor: "oRB", to: rec, h: 1.2 });
+        ball.push({ t0: tEnd, t1: 0.95, type: "air", fromActor: carrier, to: rec, h: 1.2 });
         ball.push({ t0: 0.95, t1: 1, type: "carry", actor: tk });
         const a = actors[tk]; a.path = [...a.path.filter((w) => w[0] < tEnd), [tEnd, dEnd, yEnd], [0.95, rec[0], rec[1]], [1, rec[0], rec[1]]];
         banner = { text: "FUMBLE!", kind: goodFor(false) };
-        labelIds = ["oRB", tk];
+        labelIds = [carrier, tk];
       } else if (td) banner = { text: "TOUCHDOWN!", kind: goodFor(true) };
       else if (safety) banner = { text: "SAFETY!", kind: goodFor(false) };
       else banner = { text: last.yards > 0 ? `+${last.yards} YDS` : last.yards === 0 ? "NO GAIN" : `${last.yards} YDS`, kind: last.yards >= 4 ? goodFor(true) : last.yards <= 0 ? goodFor(false) : "info" };
@@ -2345,7 +2504,7 @@ if (typeof module !== "undefined")
 
     // ================= PASS (complete / incomplete / int / sack) =================
     else if (["complete", "incomplete", "int", "sack"].includes(kind)) {
-      const id = offPlay ? offPlay.id : last.hail ? "hail" : "verts";
+      const id = offPlay ? offPlay.anim || offPlay.id : last.hail ? "hail" : "verts";
       const cat = offPlay ? offPlay.cat : "deep";
       const depth = offPlay ? offPlay.depth || "short" : "deep";
       const screen = cat === "screen";
@@ -2585,21 +2744,35 @@ if (typeof module !== "undefined")
     try { anim = build(pre, last, post, info); } catch (e) { console.error(e); onDone(); return; }
     const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const total = (reduce ? 0.5 : 1) * anim.dur * 1000;
-    const hold = 900;
-    const startCam = anim.losX + anim.dir * 6;
-    setCam(startCam, true);
+    const base = view.baseVw, full = 120;
+    const ZOOM = base >= 119 ? 0 : 450;       // zoom out / back in
+    const HOLD = 1000;                         // pause on the result unless skipped
+    setCam(anim.losX + anim.dir * 6, true);
     view.anim = anim;
-    let t0 = performance.now();
     view.skip = false;
+    let skipped = false;
+    let t0 = performance.now();
     cancelAnimationFrame(view.raf);
+    const ez = (u) => (u <= 0 ? 0 : u >= 1 ? 1 : u * u * (3 - 2 * u));
     const step = (now) => {
-      if (view.skip) { view.skip = false; t0 = now - total - hold + 450; }
+      if (view.skip) {
+        view.skip = false; skipped = true;
+        t0 = now - (ZOOM + total);             // jump to the end of the play
+      }
       const el = now - t0;
-      const t = Math.min(1, el / total);
-      const bannerA = el < total * 0.82 ? 0 : el < total ? (el - total * 0.82) / (total * 0.18) : 1;
+      const hold = skipped ? 0 : HOLD;
+      const back = skipped ? Math.min(ZOOM, 220) : ZOOM;
+      let t, zoom;
+      if (el < ZOOM) { t = 0; zoom = ez(el / ZOOM); }
+      else if (el < ZOOM + total) { t = (el - ZOOM) / total; zoom = 1; }
+      else if (el < ZOOM + total + hold) { t = 1; zoom = 1; }
+      else { t = 1; zoom = 1 - ez((el - ZOOM - total - hold) / (back || 1)); }
+      view.vw = base + (full - base) * zoom;
+      const pt = el - ZOOM;
+      const bannerA = pt < total * 0.82 ? 0 : pt < total ? (pt - total * 0.82) / (total * 0.18) : 1;
       drawFrame(anim, t, bannerA);
-      if (el < total + hold) view.raf = requestAnimationFrame(step);
-      else { view.anim = null; onDone(); }
+      if (el < ZOOM + total + hold + back) view.raf = requestAnimationFrame(step);
+      else { view.anim = null; view.vw = base; onDone(); }
     };
     view.raf = requestAnimationFrame(step);
   }
@@ -3233,8 +3406,17 @@ if (typeof module !== "undefined")
     if (g.phase === "over" && recordedFor !== g) setTimeout(() => { if (recordedFor !== g) showResult(); }, 700);
   }
 
-  function playCards(cat, side) {
-    return `<div class="plays">${cat.plays.map((p) => {
+  function dealPlays(cat, avoid) {
+    // 3 random plays from the formation's 9, different from the last deal when possible
+    for (let i = 0; i < 12; i++) {
+      const ids = shuffle(cat.plays).slice(0, 3).map((p) => p.id);
+      if (!avoid || ids.some((x) => !avoid.includes(x))) return ids;
+    }
+    return shuffle(cat.plays).slice(0, 3).map((p) => p.id);
+  }
+  function playCards(cat, side, ids) {
+    const list = ids ? ids.map((id) => cat.plays.find((p) => p.id === id)).filter(Boolean) : cat.plays;
+    return `<div class="plays">${list.map((p) => {
       const beats = side === "off" ? p.beats : null;
       const weak = side === "off" ? p.weak : null;
       const tagInfo = side === "off"
@@ -3280,9 +3462,45 @@ if (typeof module !== "undefined")
       rbscreen: arrow(`M60 ${los + 17} L40 ${los + 12} L36 ${los - 4}`) + arrow(`M52 ${los + 4} L42 ${los - 2}`, "rt2") + arrow(`M60 ${los + 4} L46 ${los - 1}`, "rt2"),
       bubble: arrow(`M80 ${los + 5} C86 ${los + 10} 94 ${los + 8} 96 ${los - 4}`) + arrow(`M108 ${los + 2} L104 ${los - 6}`, "rt2"),
       tunnel: arrow(`M108 ${los + 2} L108 ${los - 2} L94 ${los + 3} L86 ${los - 10}`) + arrow(`M68 ${los + 4} L84 ${los - 2}`, "rt2"),
+      sneak: arrow(`M60 ${los + 11} L60 ${los - 7}`),
+      iso: arrow(`M60 ${los + 17} L61 ${los + 2} L62 ${los - 14}`) + arrow(`M60 ${los + 11} L61 ${los - 3}`, "rt2"),
+      trap: arrow(`M60 ${los + 17} L60 ${los - 14}`) + arrow(`M52 ${los + 6} C56 ${los + 8} 64 ${los + 7} 67 ${los + 1}`, "rt2"),
+      jet: arrow(`M108 ${los + 2} C90 ${los + 12} 70 ${los + 12} 50 ${los + 8} C30 ${los + 4} 18 ${los - 2} 12 ${los - 14}`),
+      zoneread: arrow(`M60 ${los + 17} L66 ${los + 2} L68 ${los - 14}`) + arrow(`M60 ${los + 11} L46 ${los + 8} L40 ${los - 10}`, "rt2"),
+      speedopt: arrow(`M60 ${los + 11} L80 ${los + 6} L92 ${los - 6}`) + arrow(`M60 ${los + 17} C80 ${los + 18} 96 ${los + 14} 104 ${los + 4}`, "rt2"),
+      sbr: arrow(`M60 ${los + 17} C80 ${los + 18} 100 ${los + 10} 106 ${los - 12}`) + arrow(`M52 ${los + 6} C66 ${los + 9} 82 ${los + 8} 92 ${los + 2}`, "rt2") + arrow(`M60 ${los + 6} C72 ${los + 9} 86 ${los + 8} 96 ${los + 3}`, "rt2"),
+      spacing: arrow(`M12 ${los + 2} L12 ${los - 7}`) + arrow(`M108 ${los + 2} L108 ${los - 7}`) + arrow(`M80 ${los + 3} L76 ${los - 7}`) + arrow(`M60 ${los + 17} L34 ${los + 4}`, "rt2"),
+      snag: arrow(`M80 ${los + 3} L80 ${los - 14} L98 ${los - 24}`, "rt2") + arrow(`M108 ${los + 2} L108 ${los - 6} L100 ${los - 6}`) + arrow(`M60 ${los + 17} L104 ${los + 3}`, "rt2"),
+      dslant: arrow(`M80 ${los + 3} L82 ${los - 4} L66 ${los - 12}`) + arrow(`M108 ${los + 2} L108 ${los - 6} L90 ${los - 14}`),
+      curls: [12, 80, 108].map((x) => arrow(`M${x} ${los + 2} L${x} ${los - 12} L${x + (x < 60 ? 3 : -3)} ${los - 9}`)).join(""),
+      bsfade: arrow(`M12 ${los + 2} L10 ${los - 24} L8 ${los - 20}`),
+      flood: arrow(`M108 ${los + 2} L108 ${los - 34}`, "rt2") + arrow(`M80 ${los + 3} L80 ${los - 12} L112 ${los - 14}`) + arrow(`M60 ${los + 17} L102 ${los}`, "rt2"),
+      cornerflat: arrow(`M80 ${los + 3} L80 ${los - 14} L100 ${los - 30}`) + arrow(`M60 ${los + 17} L104 ${los + 1}`, "rt2"),
+      outup: arrow(`M108 ${los + 2} L108 ${los - 8} L114 ${los - 8} L114 ${los - 32}`),
+      wheel: arrow(`M60 ${los + 17} C80 ${los + 16} 100 ${los + 6} 104 ${los - 28}`) + arrow(`M108 ${los + 2} L108 ${los - 10} L96 ${los - 10}`, "rt2"),
+      dblout: arrow(`M80 ${los + 3} L80 ${los - 6} L96 ${los - 6}`) + arrow(`M108 ${los + 2} L108 ${los - 14} L116 ${los - 14}`),
+      fadestop: arrow(`M108 ${los + 2} L110 ${los - 18} L112 ${los - 14}`),
+      drive: arrow(`M80 ${los + 3} L72 ${los - 3} L30 ${los - 4}`) + arrow(`M12 ${los + 2} L12 ${los - 14} L50 ${los - 14}`),
+      shallow: arrow(`M12 ${los + 2} L18 ${los - 3} L100 ${los - 4}`) + arrow(`M108 ${los + 2} L108 ${los - 24}`, "rt2"),
+      dig: arrow(`M108 ${los + 2} L108 ${los - 16} L66 ${los - 16}`) + arrow(`M80 ${los + 3} L80 ${los - 30}`, "rt2"),
+      seam: arrow(`M68 ${los + 4} L72 ${los - 34}`) + arrow(`M12 ${los + 2} L12 ${los - 30}`, "rt2") + arrow(`M108 ${los + 2} L108 ${los - 30}`, "rt2"),
+      follow: arrow(`M12 ${los + 2} L16 ${los - 8} L90 ${los - 10}`) + arrow(`M80 ${los + 3} L84 ${los - 4} L100 ${los - 6}`, "rt2"),
+      drift: arrow(`M12 ${los + 2} L14 ${los - 6} L44 ${los - 14}`) + `<circle cx="60" cy="${los + 12}" r="1.6" fill="currentColor"/>`,
+      postcorner: arrow(`M108 ${los + 2} L108 ${los - 14} L98 ${los - 22} L114 ${los - 34}`),
+      sluggo: arrow(`M12 ${los + 2} L14 ${los - 4} L22 ${los - 9} L24 ${los - 34}`),
+      flea: arrow(`M60 ${los + 17} L60 ${los + 7}`, "rt2") + arrow(`M12 ${los + 2} L12 ${los - 10} L70 ${los - 32}`),
+      padeep: arrow(`M12 ${los + 2} L18 ${los - 10} L96 ${los - 26}`) + `<circle cx="60" cy="${los + 12}" r="1.6" fill="currentColor"/>`,
+      streak: arrow(`M12 ${los + 2} L12 ${los - 34}`),
+      scissors: arrow(`M80 ${los + 3} L80 ${los - 14} L100 ${los - 32}`) + arrow(`M108 ${los + 2} L108 ${los - 14} L84 ${los - 32}`, "rt2"),
+      slip: arrow(`M68 ${los + 4} L72 ${los + 1} L84 ${los + 5}`),
+      midscreen: arrow(`M60 ${los + 17} L60 ${los + 12} L62 ${los - 4}`) + arrow(`M52 ${los + 4} L56 ${los - 2}`, "rt2") + arrow(`M68 ${los + 4} L64 ${los - 2}`, "rt2"),
+      swing: arrow(`M60 ${los + 17} C76 ${los + 18} 88 ${los + 12} 92 ${los + 6}`),
+      jailbreak: arrow(`M108 ${los + 2} L106 ${los + 4} L90 ${los + 2} L84 ${los - 10}`) + arrow(`M52 ${los + 4} L84 ${los + 2}`, "rt2") + arrow(`M60 ${los + 4} L80 ${los - 2}`, "rt2"),
+      shovel: arrow(`M60 ${los + 17} L58 ${los + 6}`) + arrow(`M60 ${los + 11} L52 ${los + 13}`, "rt2"),
+      smoke: arrow(`M12 ${los + 2} L10 ${los + 3}`) + arrow(`M60 ${los + 11} L14 ${los + 3}`, "rt2"),
     };
     if (side === "off") {
-      body = line + offForm + (R[p.id] || "");
+      body = line + offForm + (R[p.id] || R[p.anim] || "");
     } else {
       // defense: show zones / blitz arrows
       const Dline = [X(52, los - 4), X(60, los - 4), X(68, los - 4), X(76, los - 4)].join("");
@@ -3347,27 +3565,52 @@ if (typeof module !== "undefined")
     }
     if (state.busy) return `<div class="panel-msg"><div class="huddle">${esc(g.opp.nick)} at the line…</div></div>`;
 
-    if (g.poss === "you") {
-      const cat = OFFENSE_PLAYBOOK.find((c) => c.id === state.offCat);
-      return `<div class="panel-head"><h3>Call your play</h3><span class="hint">Pick a play type, then one of 3 plays</span></div>
-        <div class="cats">${OFFENSE_PLAYBOOK.map((c) => `<button class="cat ${state.offCat === c.id ? "on" : ""}" data-cat="${c.id}"><i>${c.icon}</i><span>${c.name}</span></button>`).join("")}</div>
-        ${cat ? `<p class="cat-blurb">${esc(cat.blurb)}</p>${playCards(cat, "off")}` : `<p class="cat-blurb muted">Choose a play type above.</p>`}
-        ${specialBar(g)}`;
-    }
-    const cat = DEFENSE_PLAYBOOK.find((c) => c.id === state.defCat);
+    const youOff = g.poss === "you";
+    const book = youOff ? OFFENSE_PLAYBOOK : DEFENSE_PLAYBOOK;
+    const catId = youOff ? state.offCat : state.defCat;
+    const cat = book.find((c) => c.id === catId);
     const canTO = g.clockRunning && g.you.to > 0;
-    return `<div class="panel-head"><h3>Call your defense</h3><span class="hint">${esc(g.opp.nick)} ball · pick a front/coverage, then one of 3 calls</span></div>
-      <div class="cats def">${DEFENSE_PLAYBOOK.map((c) => `<button class="cat ${state.defCat === c.id ? "on" : ""}" data-cat="${c.id}"><i>${c.icon}</i><span>${c.name}</span></button>`).join("")}</div>
-      ${cat ? `<p class="cat-blurb">${esc(cat.blurb)}</p>${playCards(cat, "def")}` : `<p class="cat-blurb muted">Choose a defensive call type above.</p>`}
-      <div class="specials"><div class="sbtns"><button class="sbtn" data-sp="timeout" ${canTO ? "" : "disabled"}>Timeout (${g.you.to})</button></div></div>`;
+    const extras = youOff ? specialBar(g)
+      : `<div class="specials"><div class="sbtns"><button class="sbtn" data-sp="timeout" ${canTO ? "" : "disabled"}>Timeout (${g.you.to})</button></div></div>`;
+    if (!cat) {
+      // Step 1: pick a formation
+      return `<div class="panel-head"><h3>${youOff ? "Call your play" : "Call your defense"}</h3>
+          <span class="hint">${youOff ? "Pick a formation" : `${esc(g.opp.nick)} ball · pick a defensive formation`}</span></div>
+        <div class="cats ${youOff ? "" : "def"}">${book.map((c) => `<button class="cat" data-cat="${c.id}"><i>${c.icon}</i><span>${c.name}</span></button>`).join("")}</div>
+        ${extras}`;
+    }
+    // Step 2: three of the formation's nine plays
+    const ids = state.picks && state.picks.cat === cat.id ? state.picks.ids : (state.picks = { cat: cat.id, ids: dealPlays(cat) }).ids;
+    return `<div class="play-head">
+        <button class="sbtn back-btn" data-back>← Back</button>
+        <div class="play-head-title"><i>${cat.icon}</i><h3>${esc(cat.name)}</h3></div>
+        <button class="sbtn reroll-btn" data-reroll>🎲 Reroll plays</button>
+      </div>
+      <p class="cat-blurb">${esc(cat.blurb)} <span class="muted">· 3 of ${cat.plays.length} plays</span></p>
+      ${playCards(cat, youOff ? "off" : "def", ids)}
+      ${extras}`;
   }
 
   function wireCallPanel(g) {
     const panel = document.getElementById("callpanel");
     if (!panel) return;
+    const redraw = () => { panel.innerHTML = callPanel(g); wireCallPanel(g); };
     panel.querySelectorAll("[data-cat]").forEach((b) => (b.onclick = () => {
       if (g.poss === "you") state.offCat = b.dataset.cat; else state.defCat = b.dataset.cat;
-      panel.innerHTML = callPanel(g); wireCallPanel(g);
+      const book = g.poss === "you" ? OFFENSE_PLAYBOOK : DEFENSE_PLAYBOOK;
+      const cat = book.find((c) => c.id === b.dataset.cat);
+      state.picks = { cat: cat.id, ids: dealPlays(cat) };
+      redraw();
+    }));
+    panel.querySelectorAll("[data-back]").forEach((b) => (b.onclick = () => {
+      if (g.poss === "you") state.offCat = null; else state.defCat = null;
+      redraw();
+    }));
+    panel.querySelectorAll("[data-reroll]").forEach((b) => (b.onclick = () => {
+      const book = g.poss === "you" ? OFFENSE_PLAYBOOK : DEFENSE_PLAYBOOK;
+      const cat = book.find((c) => c.id === (g.poss === "you" ? state.offCat : state.defCat));
+      state.picks = { cat: cat.id, ids: dealPlays(cat, state.picks && state.picks.ids) };
+      redraw();
     }));
     panel.querySelectorAll("[data-play]").forEach((b) => (b.onclick = () => {
       if (state.busy || state.animating) return;
@@ -3385,7 +3628,7 @@ if (typeof module !== "undefined")
 
   function afterAction(beforePoss) {
     const g = state.game;
-    if (g.poss !== beforePoss) { state.offCat = null; state.defCat = null; }
+    state.offCat = null; state.defCat = null; state.picks = null;
     renderGame();
     flashField();
     maybeCpu();
