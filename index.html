@@ -2235,14 +2235,28 @@ if (typeof module !== "undefined")
     c.lineWidth = Math.max(1.5, r * 0.14); c.strokeStyle = "rgba(0,0,0,.45)";
     c.fillStyle = (p.ovr ?? 75) >= 86 ? "#ffffff" : "#1b1306";
     c.strokeText(String(p.num), nx, ny + 0.5); c.fillText(String(p.num), nx, ny + 0.5);
-    if (opts.label) {
-      const f = Math.max(11, Math.round(r * 1.0));
-      c.font = `700 ${f}px "Barlow Condensed", "Arial Narrow", sans-serif`;
-      const tw = c.measureText(opts.label).width;
-      const ly = hy - f * 0.7;
-      c.fillStyle = "rgba(5,8,15,.82)";
-      roundRect(c, x - tw / 2 - 5, ly - f * 0.62, tw + 10, f * 1.25, 4); c.fill();
-      c.fillStyle = "#ffe9a8"; c.fillText(opts.label, x, ly);
+    // Name plate: below the helmet for your team (bottom of the field),
+    // above it for the opponent (top of the field).
+    const nm = opts.label || p.short || p.tag || "";
+    if (nm) {
+      const below = !!opts.below;
+      const hot = !!opts.label;
+      const fsz = hot ? Math.max(11, Math.round(r * 1.05)) : Math.max(9, Math.round(r * 0.85));
+      c.font = `700 ${fsz}px "Barlow Condensed", "Arial Narrow", sans-serif`;
+      c.textAlign = "center"; c.textBaseline = "middle";
+      let ly = below ? y + r * 1.35 + fsz * 0.55 : hy - fsz * 0.55;
+      if (p.stagger && !hot) ly += (below ? 1 : -1) * fsz * 1.05;
+      if (hot) {
+        const tw = c.measureText(nm).width;
+        c.fillStyle = "rgba(5,8,15,.85)";
+        roundRect(c, x - tw / 2 - 5, ly - fsz * 0.62, tw + 10, fsz * 1.25, 4); c.fill();
+        c.fillStyle = "#ffe9a8"; c.fillText(nm, x, ly);
+      } else {
+        c.lineWidth = 3; c.strokeStyle = "rgba(4,10,6,.85)"; c.lineJoin = "round";
+        c.strokeText(nm, x, ly);
+        c.fillStyle = p.short ? "#ffffff" : "rgba(255,255,255,.7)";
+        c.fillText(nm, x, ly);
+      }
     }
     c.restore();
   }
@@ -2289,6 +2303,8 @@ if (typeof module !== "undefined")
 
   const SPOT_UNIT = { LT: "OL", LG: "OL", C: "OL", RG: "OL", RT: "OL", TE: "TE", QB: "QB", RB: "RB", WR1: "WR1", WR2: "WR2", WR3: "WR2",
     DE1: "DL", DT1: "DL", DT2: "DL", DE2: "DL", LB1: "LB", MLB: "LB", LB2: "LB", CB1: "CB1", CB2: "CB2", SS: "S", FS: "S" };
+  const SPOT_TAG = { LT: "LT", LG: "LG", C: "C", RG: "RG", RT: "RT", TE: "TE", QB: "QB", RB: "RB", WR1: "WR", WR2: "WR", WR3: "WR",
+    DE1: "DE", DT1: "DT", DT2: "DT", DE2: "DE", LB1: "LB", MLB: "LB", LB2: "LB", CB1: "CB", CB2: "CB", SS: "S", FS: "S" };
   function rosterFor(info, side, unit) {
     // Returns {spot: {num, name, ovr, id}}
     const set = unit === "off" ? OFF_SET : DEF_SET_KEYS;
@@ -2299,14 +2315,16 @@ if (typeof module !== "undefined")
     const oppNums = info.oppNums || {};
     for (const spot of Object.keys(set)) {
       const key = map[spot];
-      if (src && key && src[key]) out[spot] = { num: src[key].num, name: src[key].name, short: src[key].short, id: src[key].id, ovr: src[key].ovr };
+      if (side === "opp" && info.oppSpots && info.oppSpots[spot]) out[spot] = { ...info.oppSpots[spot] };
+      else if (src && key && src[key]) out[spot] = { num: src[key].num, name: src[key].name, short: src[key].short, id: src[key].id, ovr: src[key].ovr };
       else {
         // backups: a few points under the team's rating at that position
         const base = units[SPOT_UNIT[spot]] ?? 75;
         const ovr = side === "you" ? Math.max(66, base - 6) : base;
-        out[spot] = { num: side === "opp" ? (oppNums[spot] ?? GENERIC_NUM[spot]) : GENERIC_NUM[spot], name: null, ovr };
+        out[spot] = { num: side === "opp" ? (oppNums[spot] ?? GENERIC_NUM[spot]) : GENERIC_NUM[spot], name: null, ovr, tag: SPOT_TAG[spot] };
       }
     }
+    for (const st of ["LG", "RG"]) if (out[st]) out[st] = { ...out[st], stagger: true };  // second row for crowded line names
     return out;
   }
   const DEF_SET_KEYS = defSet();
@@ -2328,8 +2346,8 @@ if (typeof module !== "undefined")
       const offR = rosterFor(info, off, "off"), defR = rosterFor(info, off === "you" ? "opp" : "you", "def");
       const dset = defSet([]);
       const offC = off === "you" ? cols.you : cols.opp, defC = off === "you" ? cols.opp : cols.you;
-      for (const [spot, [d, y]] of Object.entries(dset)) drawPlayer(defR[spot], losX + dir * d, MID + y, { ...defC, track: true, face: -dir });
-      for (const [spot, [d, y]] of Object.entries(OFF_SET)) drawPlayer(offR[spot], losX + dir * d, MID + y, { ...offC, track: true, face: dir });
+      for (const [spot, [d, y]] of Object.entries(dset)) drawPlayer(defR[spot], losX + dir * d, MID + y, { ...defC, track: true, face: -dir, below: off !== "you" });
+      for (const [spot, [d, y]] of Object.entries(OFF_SET)) drawPlayer(offR[spot], losX + dir * d, MID + y, { ...offC, track: true, face: dir, below: off === "you" });
       drawBall(losX - dir * 0.2, MID, 0);
     } else {
       drawBall(losX, MID, 0);
@@ -2729,7 +2747,8 @@ if (typeof module !== "undefined")
       const p = toAbs(at(a.path, t));
       const hot = carrierSeg && carrierSeg.actor === a.id;
       const showLabel = anim.labelIds.includes(a.id) && a.p && (a.p.short || a.p.name);
-      drawPlayer(a.p, p[0], p[1], { ...a.c, hot, face: a.team === "off" ? anim.dir : -anim.dir, label: showLabel ? (a.p.short || a.p.name) : null });
+      const youSide = (a.team === "off") === (anim.dir === 1);
+      drawPlayer(a.p, p[0], p[1], { ...a.c, hot, face: a.team === "off" ? anim.dir : -anim.dir, below: youSide, label: showLabel ? (a.p.short || a.p.name) : null });
     }
     if (!b[3]) drawBall(bAbs[0], bAbs[1], b[2]);
     if (bannerAlpha > 0 && anim.banner.text) drawBanner(anim.banner.text, anim.banner.kind, bannerAlpha);
@@ -2995,16 +3014,41 @@ if (typeof module !== "undefined")
     if (!ps.length) return null;
     return Math.round(ps.reduce((s, p) => s + p.ovr, 0) / ps.length);
   }
+  // Opponents are built from real players in the database whose ratings sit
+  // around the round's target (never anyone on your roster).
   function makeOpponent(target, avoid = []) {
     const pool = FRANCHISES.filter((f) => !avoid.includes(f[1]));
     const [city, nick, hex, num] = pick(pool);
-    const u = {};
     const n = (m) => { let x = 0; for (let i = 0; i < 3; i++) x += rand(); return m + (x - 1.5) * 5; };
-    ["QB", "RB", "WR1", "WR2", "TE", "OL", "DL", "LB", "CB1", "CB2", "S", "K"].forEach((k) => (u[k] = clamp(Math.round(n(target)), 66, 99)));
-    if (u.WR2 > u.WR1) [u.WR1, u.WR2] = [u.WR2, u.WR1];
-    if (u.CB2 > u.CB1) [u.CB1, u.CB2] = [u.CB2, u.CB1];
-    u.KLong = 56 + Math.floor(rand() * 8);
-    return { name: `${city} ${nick}`, nick, city, color: hex, numColor: num, units: u, ovr: unitsOvr(u), names: null };
+    const taken = new Set(Object.values(state.roster || {}).map((p) => p.id));
+    const sign = (pos) => {
+      const want = clamp(Math.round(n(target)), 66, 99);
+      const options = PLAYERS.filter((p) => p.pos === pos && !taken.has(p.id))
+        .sort((a, b) => Math.abs(a.ovr - want) - Math.abs(b.ovr - want)).slice(0, 3);
+      const p = pick(options);
+      taken.add(p.id);
+      return p;
+    };
+    const many = (pos, k) => Array.from({ length: k }, () => sign(pos)).sort((a, b) => b.ovr - a.ovr);
+    const QB = sign("QB"), RB = sign("RB"), TE = sign("TE"), K = sign("K");
+    const WR = many("WR", 3), OL = many("OL", 5), DL = many("DL", 4), LB = many("LB", 3), CB = many("CB", 2), S = many("S", 2);
+    const avg = (a) => Math.round(a.reduce((t, p) => t + p.ovr, 0) / a.length);
+    const u = {
+      QB: QB.ovr, RB: RB.ovr, WR1: WR[0].ovr, WR2: WR[1].ovr, TE: TE.ovr, OL: avg(OL), DL: avg(DL),
+      LB: avg(LB), CB1: CB[0].ovr, CB2: CB[1].ovr, S: avg(S), K: K.ovr, KLong: K.long || 58,
+    };
+    const names = { QB: QB.name, RB: RB.name, WR1: WR[0].name, WR2: WR[1].name, TE: TE.name, K: K.name,
+      DL1: DL[0].name, DL2: DL[1].name, LB: LB[0].name, CB1: CB[0].name, CB2: CB[1].name, S: S[0].name };
+    const card = (p) => ({ num: p.num, name: p.name, short: lastName(p.name), id: p.id, ovr: p.ovr });
+    // who lines up where on the field
+    const spots = {
+      QB: card(QB), RB: card(RB), WR1: card(WR[0]), WR2: card(WR[1]), WR3: card(WR[2]), TE: card(TE),
+      LT: card(OL[0]), RT: card(OL[1]), LG: card(OL[2]), RG: card(OL[3]), C: card(OL[4]),
+      DT1: card(DL[0]), DT2: card(DL[1]), DE1: card(DL[2]), DE2: card(DL[3]),
+      MLB: card(LB[0]), LB1: card(LB[1]), LB2: card(LB[2]), CB1: card(CB[0]), CB2: card(CB[1]),
+      SS: card(S[0]), FS: card(S[1]), K: card(K),
+    };
+    return { name: `${city} ${nick}`, nick, city, color: hex, numColor: num, units: u, ovr: unitsOvr(u), names, spots };
   }
 
   // ---------------- navigation ----------------
@@ -3332,7 +3376,7 @@ if (typeof module !== "undefined")
         DE1: r(90, 99), DT1: r(90, 99), DT2: r(90, 99), DE2: r(90, 99), LB1: r(50, 59), MLB: r(40, 59), LB2: r(50, 59), CB1: r(20, 29), CB2: r(30, 39), SS: r(20, 49), FS: r(20, 49) };
     }
     return { youColor: c.hex, youNum: c.num, youName: g.you.name, oppColor: opp.color, oppNum: opp.numColor, oppName: opp.nick, youPlayers, oppNums: opp.jerseys,
-      youUnits: g.you.units, oppUnits: opp.units };
+      youUnits: g.you.units, oppUnits: opp.units, oppSpots: opp.spots || null };
   }
 
   function lastPlayBox(g) {
@@ -3392,7 +3436,7 @@ if (typeof module !== "undefined")
                 <label class="anim-toggle"><input type="checkbox" id="animToggle" ${store.anim !== false ? "checked" : ""}> Animations</label>
                 <button class="skip-btn" id="skipAnim" hidden>Skip ▸▸</button>
               </div>
-              <div class="field-hint">Tap your players for info</div>
+              <div class="field-hint">Tap any player for info</div>
             </div>
           </div>
         </div>
