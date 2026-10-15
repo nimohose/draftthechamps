@@ -3319,14 +3319,12 @@ if (typeof module !== "undefined")
   // =================================================================
   function renderHome() {
     const c = teamColors();
-    const sample = ["Patrick Mahomes", "Jerry Rice", "Barry Sanders", "Lawrence Taylor", "Deion Sanders"].map((n) => PLAYERS.find((p) => p.name === n));
     $app.innerHTML = `
       <section class="hero">
         <div class="hero-inner">
           <p class="eyebrow">Every era · 1985 to today · ${PLAYERS.length} legends</p>
           <h1>Draft the <span>Champs</span></h1>
           <p class="lede">Draft a team of NFL greats, rated 70–99 against their own position from their real season averages. Then take over in random two-minute drills — lead the comeback on offense or protect the lead on defense — and win four straight to lift the trophy.</p>
-          <div class="hero-helmets">${sample.map((p) => helmetTag(p, { colors: c, size: 58 })).join("")}</div>
         </div>
       </section>
 
