@@ -2744,8 +2744,8 @@ if (typeof module !== "undefined")
     try { anim = build(pre, last, post, info); } catch (e) { console.error(e); onDone(); return; }
     const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const total = (reduce ? 0.5 : 1) * anim.dur * 1000;
-    const base = view.baseVw, full = 120;
-    const ZOOM = base >= 119 ? 0 : 450;       // zoom out / back in
+    const base = view.baseVw, full = base;     // camera stays at the regular view
+    const ZOOM = 0;
     const HOLD = 1000;                         // pause on the result unless skipped
     setCam(anim.losX + anim.dir * 6, true);
     view.anim = anim;
