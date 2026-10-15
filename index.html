@@ -480,6 +480,11 @@ main.wide { max-width: 1680px; }
   .play-head-title h3 { font-size: 24px; }
 }
 
+/* live game clock */
+.sb-clockstate.live { color: #ff7b7b; }
+.sb-clockstate.live i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ff5a5f; margin-right: 4px; vertical-align: 1px; animation: liveDot 1s ease-in-out infinite; }
+@keyframes liveDot { 50% { opacity: .25; } }
+
 </style>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
   <!-- Vercel Web Analytics (only works on the live site) -->
@@ -1975,11 +1980,29 @@ if (typeof module !== "undefined")
     if (s.clock <= 0) endGame(s);
   }
 
+  // ---------- live game clock ----------
+  // Called once per real second while a play is being picked. Runs the game
+  // clock one second (up to the 40-second play clock). Returns true if it ticked.
+  const PLAY_CLOCK = 40;
+  function liveTick(s) {
+    if (s.phase !== "play" || !s.clockRunning || s.clock <= 0) return false;
+    if ((s.liveElapsed || 0) >= PLAY_CLOCK) return false;
+    s.liveElapsed = (s.liveElapsed || 0) + 1;
+    tick(s, 1);
+    if (s.clock <= 0) endGame(s);
+    return true;
+  }
+
   // ---------- special plays ----------
+  // Time between plays. The clock may already have ticked live while the
+  // play was being picked; that counts toward the tempo's minimum.
   function runoffBeforeSnap(s, side, seconds) {
+    const done = s.liveElapsed || 0;
+    s.liveElapsed = 0;
     if (!s.clockRunning) return false;
-    const sec = seconds ?? (side === "you" ? TEMPO_RUNOFF[s.tempo] : cpuTempo(s));
-    tick(s, Math.min(sec, s.clock));
+    const want = seconds ?? (side === "you" ? TEMPO_RUNOFF[s.tempo] : cpuTempo(s));
+    const sec = Math.max(0, want - done);
+    if (sec > 0) tick(s, Math.min(sec, s.clock));
     if (s.clock <= 0) { endGame(s); return true; }
     return false;
   }
@@ -1996,6 +2019,7 @@ if (typeof module !== "undefined")
       if (s[caller].to <= 0 || !s.clockRunning) return;
       s[caller].to--;
       s.clockRunning = false;
+      s.liveElapsed = 0;
       log(s, `⏸ Timeout, ${caller === "you" ? s.you.name : s.opp.nick} (${s[caller].to} left).`, "whistle");
       return;
     }
@@ -2164,7 +2188,7 @@ if (typeof module !== "undefined")
 
   const api = {
     newGame, makeScenario, scenarioGoal, userOffense, userDefense, userSpecial, cpuTurn,
-    pat, kickoff, fgProb, fmtClock, spotText, canKneelOut, TEMPO_RUNOFF, TAG_NAMES,
+    pat, kickoff, fgProb, fmtClock, liveTick, PLAY_CLOCK, spotText, canKneelOut, TEMPO_RUNOFF, TAG_NAMES,
     _internal: { resolveRun, resolvePass, cpuOffenseCall, cpuDefenseCall, matchup },
   };
   root.ENGINE = api;
@@ -3612,7 +3636,7 @@ if (typeof module !== "undefined")
           <div class="sb-mid">
             <div class="sb-round">${state.run ? ROUNDS[state.run.round].name : ""} · 4TH</div>
             <div class="sb-clock ${g.clock <= 30 ? "urgent" : ""}">${E.fmtClock(g.clock)}</div>
-            <div class="sb-clockstate">${g.phase === "over" ? "FINAL" : g.clockRunning ? "● clock running" : "■ clock stopped"}</div>
+            <div class="sb-clockstate ${g.phase !== "over" && g.clockRunning ? "live" : ""}">${g.phase === "over" ? "FINAL" : g.clockRunning ? "<i></i> clock running" : "■ clock stopped"}</div>
           </div>
           <div class="sb-team opp ${!youPoss ? "poss" : ""}" style="--tc:${g.opp.color}">
             <div class="sb-name">${esc(g.opp.nick)}${!youPoss ? " 🏈" : ""}</div>
@@ -3939,6 +3963,23 @@ if (typeof module !== "undefined")
     };
     state.pendingSnap = { start, timer: setTimeout(start, 1000) };
   }
+
+  // Live game clock: while the clock is running and you're picking a play,
+  // it ticks down one second per real second. Call a timeout to stop it.
+  // Pauses while a play animates, a player card is open, or the tab is hidden.
+  function liveClockStep() {
+    const g = state.game;
+    if (!g || state.screen !== "game" || g.phase !== "play" || !g.clockRunning) return;
+    if (state.animating || state.pendingSnap || state.busy || document.hidden) return;
+    const ov = document.getElementById("overlay");
+    if (ov && !ov.hidden) return;
+    if (g.poss === "opp" && !document.querySelector("#callpanel [data-cat], #callpanel [data-play]")) return;
+    if (!E.liveTick(g)) return;
+    if (g.phase !== "play" || !g.clockRunning) { renderGame(); return; }   // clock hit 0 or 2-minute warning
+    const el = document.querySelector(".sb-clock");
+    if (el) { el.textContent = E.fmtClock(g.clock); el.classList.toggle("urgent", g.clock <= 30); }
+  }
+  setInterval(liveClockStep, 1000);
 
   // Let the CPU take any pre-snap actions (timeouts, kneels, field goals…)
   function maybeCpu() {
