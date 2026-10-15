@@ -911,7 +911,8 @@ const POS_NAMES = {
 
 /* ---------------------------------------------------------------------
    Turn raw rows into player objects with per-17-game season averages
-   and a stat-based score. Scores are then converted to 60–99 ratings.
+   and a stat-based score. Scores are then converted to 70–99 ratings,
+   graded within each position.
    --------------------------------------------------------------------- */
 function buildPlayers() {
   const all = [];
@@ -1022,9 +1023,24 @@ function buildPlayers() {
       const raw = pos === "OL" ? 0.25 * p.career + 0.75 * p.honors
         : pos === "CB" || pos === "S" ? 0.30 * peak + 0.18 * p.career + 0.52 * p.honors
         : 0.42 * peak + 0.18 * p.career + 0.40 * p.honors;
-      // Fixed scale for every position: no forced 66 floor or 99 ceiling.
-      p.ovr = Math.max(62, Math.min(99, Math.round(58 + 46 * raw)));
+      p.raw = raw;
     }
+    // Position-based scale: every player is graded only against players at
+    // his own position. The best at each position is 99, the lowest is 70,
+    // and everyone in between keeps their real gap (not just their rank).
+    const lo = Math.min(...list.map((p) => p.raw));
+    const hi = Math.max(...list.map((p) => p.raw));
+    // Then bend the curve so every position averages the same (about 84-85),
+    // which keeps the draft balanced from position to position.
+    const t = list.map((p) => (p.raw - lo) / ((hi - lo) || 1));
+    let a = 0.2, b = 5;
+    for (let i = 0; i < 40; i++) {
+      const gm = Math.sqrt(a * b);
+      const mean = t.reduce((s, x) => s + Math.pow(x, gm), 0) / t.length;
+      if (mean > 0.5) a = gm; else b = gm;
+    }
+    const gamma = Math.sqrt(a * b);
+    list.forEach((p, i) => (p.ovr = Math.round(70 + 29 * Math.pow(t[i], gamma))));
     all.push(...list);
   }
   return all;
@@ -1038,7 +1054,7 @@ if (typeof module !== "undefined") module.exports = { PLAYERS, POS_NAMES };
 /* =====================================================================
    DRAFT THE CHAMPS — PLAYBOOK
    ---------------------------------------------------------------------
-   Every formation (play-call type) has 9 real football plays; the game
+   Every formation (play-call type) has 15 real football plays; the game
    deals 3 of them at random each time, with a reroll. Each play is built to
    beat certain defenses and struggles against others, the same way real
    concepts do (Smash beats Cover 2, Four Verticals stresses Cover 3,
@@ -1244,7 +1260,7 @@ const DEFENSE_PLAYBOOK = [
 ];
 
 // ---------------------------------------------------------------------
-// The rest of each formation's 9 plays. Each one starts from one of the
+// The rest of each formation's 15 plays. Each one starts from one of the
 // three plays above (its "base", which also drives the field animation)
 // and changes the numbers, matchups and description.
 // ---------------------------------------------------------------------
@@ -1300,6 +1316,56 @@ const DEFENSE_PLAYBOOK = [
     ["screen", "tunnel", "jailbreak", "Jailbreak Screen", "Linemen release at the snap to form a wall for the receiver.", ["blitz", "c0"], ["c3", "c2"], { yac: 7, yacSd: 9, big: 0.08 }],
     ["screen", "rbscreen", "shovel", "Shovel Pass", "Little underhand flip to the back right behind the line.", ["blitz", "prev"], ["box", "c1"], { comp: 0.88, air: 0, yac: 5 }],
     ["screen", "bubble", "smoke", "WR Smoke Screen", "Instant throw to the outside receiver, one block, go.", ["c4", "prev", "box"], ["c1", "c2"], { tgt: { WR1: 1 } }],
+
+    // ---- plays 10-15 for each formation ----
+    ["inside", "power", "fbdive", "FB Dive", "Fullback takes a quick handoff straight up the gut. Low risk, short gain.", ["c2", "c4", "prev"], ["box", "c0"], { run: 3.4, sd: 2.0, big: 0.02, shortYd: 1.4 }],
+    ["inside", "power", "qbpower", "QB Power", "Back becomes a blocker and the quarterback follows the pulling guard.", ["c1", "c0", "c2m"], ["box", "c3"], { run: 3.9, sd: 3.2, shortYd: 1.3, carrier: "QB" }],
+    ["inside", "draw", "delay", "Delay Draw", "Back pass-blocks for a beat, then takes the late handoff into open space.", ["blitz", "c2m", "prev"], ["box", "c3"], { run: 4.3, sd: 5.2, big: 0.08 }],
+    ["inside", "iz", "dart", "Dart", "Backside tackle pulls through the hole to lead the inside run.", ["c3", "c1"], ["box", "blitz"], { run: 4.1, sd: 3.8, big: 0.05 }],
+    ["inside", "iz", "bash", "Bash", "Back runs outside while the QB keeps it inside off the end's read.", ["c2", "c4", "blitz"], ["box", "c1"], { run: 4.3, sd: 4.4, big: 0.06, carrier: "QB" }],
+    ["inside", "draw", "statue", "Statue of Liberty", "QB fakes a throw with the ball behind his back; the back grabs it and runs.", ["blitz", "c0"], ["box", "c3"], { run: 4.5, sd: 7.0, big: 0.12 }],
+
+    ["outside", "oz", "stretch", "Stretch", "Everyone reaches to the outside; the back presses the edge and cuts up.", ["c2", "c2m", "prev"], ["box", "c4"], { run: 4.2, sd: 4.8, big: 0.06, oob: 0.25 }],
+    ["outside", "toss", "crack", "Crack Toss", "Receiver cracks back on the linebacker as the back races to the corner.", ["box", "c3"], ["c2", "c4"], { run: 4.7, sd: 6.8, big: 0.09, oob: 0.4 }],
+    ["outside", "counter", "reverse", "WR Reverse", "Fake the sweep one way, hand it to the slot receiver going the other way.", ["blitz", "c1", "box"], ["c3", "c4"], { run: 4.6, sd: 8.5, big: 0.12, oob: 0.3, carrier: "WR2" }],
+    ["outside", "toss", "triple", "Triple Option", "QB can hand it off, keep it, or pitch it to the trailing back.", ["c1", "c0", "blitz"], ["c3", "box"], { run: 4.5, sd: 6.5, big: 0.09, oob: 0.3 }],
+    ["outside", "oz", "bootkeep", "Bootleg Keeper", "Fake the outside zone, QB keeps it and runs the other way.", ["box", "c2m"], ["c3", "blitz"], { run: 4.4, sd: 5.5, big: 0.07, oob: 0.45, carrier: "QB" }],
+    ["outside", "counter", "lead", "Lead Sweep", "Fullback and pulling tackle lead the back around the end.", ["c2", "c4"], ["box", "c1"], { run: 4.3, sd: 5.0, oob: 0.25 }],
+
+    ["quick", "hitch", "quickout", "Quick Out", "Three steps and throw the out at 5 yards before the corner can react.", ["c3", "c4", "prev"], ["c2", "c1"], { comp: 0.72, air: 5, oob: 0.55 }],
+    ["quick", "slant", "glance", "RPO Glance", "Read the linebacker: hand it off, or throw the skinny post behind him.", ["box", "c3", "c1"], ["c2", "c4"], { comp: 0.66, air: 9, sd: 3.5, int: 0.03 }],
+    ["quick", "stick", "texas", "Texas (Angle)", "Back fakes to the flat and breaks inside under the linebacker.", ["c1", "c2m"], ["c3", "blitz"], { comp: 0.70, air: 5, tgt: { RB: 4, TE: 1 } }],
+    ["quick", "hitch", "hank", "Hank", "Curls outside, a hook route in the middle. Sits in the windows.", ["c3", "c4", "prev"], ["c1", "c2m"], { comp: 0.71, air: 7 }],
+    ["quick", "slant", "whip", "Whip", "Slot fakes inside, then whips back to the sideline.", ["c1", "c0", "blitz"], ["c2", "c2m"], { comp: 0.68, air: 5, oob: 0.3, tgt: { WR2: 4, WR1: 1 } }],
+    ["quick", "stick", "tripsstick", "Trips Stick", "Three receivers to one side flood the short zones.", ["c3", "c4", "c2"], ["c1", "c0"], { comp: 0.74, air: 6, tgt: { WR2: 2, TE: 2, WR1: 2 } }],
+
+    ["sideline", "smash", "china", "China", "Slot runs a pivot to the sideline under a corner route.", ["c2", "c3"], ["c4", "c2m"], { comp: 0.6, air: 12, oob: 0.6 }],
+    ["sideline", "smash", "boot", "PA Bootleg", "Fake the run, QB rolls out with a flat and an out route to that sideline.", ["box", "c1", "c3"], ["blitz", "c2"], { comp: 0.63, air: 10, oob: 0.65, sack: 0.04 }],
+    ["sideline", "comeback", "deepout", "Deep Out", "Push 15 yards and break flat to the sideline. Needs a big arm.", ["c3", "c4", "prev"], ["c2", "c1"], { comp: 0.55, air: 16, oob: 0.75, int: 0.04 }],
+    ["sideline", "outs", "zout", "Z-Out", "Fake the slant, break out to the sideline. Beats inside leverage.", ["c1", "c0"], ["c2", "c3"], { comp: 0.64, air: 8, oob: 0.75, tgt: { WR1: 4, WR2: 1 } }],
+    ["sideline", "outs", "swirl", "Swirl", "Stem to the inside, then curve back out toward the boundary.", ["c1", "c4"], ["c2", "c2m"], { comp: 0.6, air: 11, oob: 0.65 }],
+    ["sideline", "smash", "tecorner", "TE Corner", "Tight end runs the corner route against a slower linebacker.", ["c1", "c3"], ["c2", "c4"], { comp: 0.56, air: 15, oob: 0.55, tgt: { TE: 4, WR2: 1 } }],
+
+    ["mid", "levels", "hilo", "Hi-Lo Crossers", "Two crossing routes at different depths stretch the linebackers.", ["c3", "c1", "c4"], ["c2m", "blitz"], { comp: 0.62, air: 11 }],
+    ["mid", "mesh", "choice", "Choice Route", "Slot receiver reads the defender and breaks wherever it's open.", ["c1", "c3", "c4"], ["c2m"], { comp: 0.66, air: 8, tgt: { WR2: 4, TE: 1 } }],
+    ["mid", "dagger", "bow", "Bow (Slot Post)", "Slot runs a post between the safeties while outside receivers clear out.", ["c4", "c2"], ["c1", "c2m"], { comp: 0.52, air: 18, int: 0.04 }],
+    ["mid", "levels", "over", "Over Route", "Receiver runs a deep crosser all the way across the field.", ["c1", "c3"], ["c2", "c4"], { comp: 0.56, air: 16 }],
+    ["mid", "mesh", "mread", "Middle Read", "Tight end splits the middle of the field, inside or over the top.", ["c2", "c3", "c4"], ["c1", "c2m"], { comp: 0.6, air: 12, tgt: { TE: 4, WR1: 1 } }],
+    ["mid", "dagger", "tecross", "TE Cross", "Tight end chips the end, then crosses behind the linebackers.", ["blitz", "c3"], ["c2m", "c1"], { comp: 0.62, air: 10, tgt: { TE: 4, WR2: 1 } }],
+
+    ["deep", "mills", "doublepost", "Double Post", "Two posts from the same side make one safety cover both.", ["c3", "c1", "c0"], ["c4", "prev"], { comp: 0.38, air: 27 }],
+    ["deep", "verts", "stopgo", "Stop & Go", "Receiver stops like a hitch, the corner bites, then he takes off.", ["c1", "c3", "c0"], ["c2", "prev"], { comp: 0.36, air: 30, int: 0.04 }],
+    ["deep", "mills", "skinny", "Skinny Post", "A thin post between the corner and the safety.", ["c3", "c4", "c1"], ["c2", "prev"], { comp: 0.45, air: 20 }],
+    ["deep", "yankee", "bang8", "PA Bang-8", "Play-action, then an 8-step post into the open middle.", ["box", "c1", "c3"], ["c2", "c4"], { comp: 0.42, air: 26, sack: 0.08 }],
+    ["deep", "verts", "tripsvert", "Trips Verticals", "Three receivers run deep on one side to overload the safety.", ["c3", "c4", "c0"], ["c1", "prev"], { comp: 0.38, air: 28, tgt: { WR2: 3, TE: 2, WR1: 2 } }],
+    ["deep", "verts", "wheelpost", "Wheel-Post", "Back wheels up the sideline under a post. Two deep shots at once.", ["c1", "blitz"], ["c2", "c4", "prev"], { comp: 0.38, air: 25, tgt: { RB: 3, WR1: 2 } }],
+
+    ["screen", "rbscreen", "throwback", "Throwback Screen", "Everyone flows one way, then the QB throws back to the other side.", ["blitz", "c0", "c1"], ["c3", "c4"], { yac: 8, yacSd: 9, big: 0.09 }],
+    ["screen", "bubble", "rocket", "Rocket Screen", "Receiver in motion catches it on the run heading for the edge.", ["box", "c4", "prev"], ["c1", "c2"], { oob: 0.35, tgt: { WR2: 3 } }],
+    ["screen", "rbscreen", "tescreen", "TE Screen", "Tight end releases behind the line with linemen out in front.", ["blitz", "c4"], ["c2", "box"], { yac: 6, tgt: { TE: 1 } }],
+    ["screen", "bubble", "flare", "Flare Screen", "Back flares out wide and catches it with receivers blocking.", ["c1", "blitz", "box"], ["c2", "c3"], { tgt: { RB: 1 }, oob: 0.35 }],
+    ["screen", "bubble", "rpobubble", "RPO Bubble", "Read the box: hand it off, or throw the bubble if there's no one outside.", ["box", "c3", "c4"], ["c1", "c2"], { comp: 0.85, yac: 5 }],
+    ["screen", "tunnel", "dblscreen", "Double Screen", "Screens set up to both sides; the QB picks the one with the better blocks.", ["blitz", "c0", "c3"], ["c2", "c2m"], { yac: 6, yacSd: 8, tgt: { WR1: 2, RB: 1 } }],
   ];
   for (const [cat, baseId, id, name, desc, beats, weak, over] of OFF) {
     const base = find(OFFENSE_PLAYBOOK, baseId);
@@ -1343,6 +1409,42 @@ const DEFENSE_PLAYBOOK = [
     ["runstop", "spill", "Spill & Squeeze", ["box", "c2"], 0.01, -1.4, [0.02, 0.0, -0.02], "Force the run wide to the sideline and chase it down."],
     ["runstop", "okie", "Okie Front", ["box", "c1"], 0.03, -1.7, [0.02, 0.04, 0.03], "3-4 front with a nose over the center and two-gapping ends."],
     ["runstop", "robberbox", "Robber Box", ["box", "c1"], 0.02, -1.8, [0.0, 0.01, 0.04], "Safety walks down as an extra run defender and robs short throws."],
+
+    // ---- plays 10-15 for each formation ----
+    ["blitz", "dog", "LB Dog", ["c1", "blitz"], 0.09, -1.1, [-0.03, -0.02, 0.04], "Both inside linebackers 'dog' through the gaps at the snap."],
+    ["blitz", "sim", "Sim Pressure", ["c3", "blitz"], 0.07, -0.5, [-0.05, -0.03, -0.01], "Show a blitz, drop a lineman, still get four fast rushers home."],
+    ["blitz", "crossdog", "Cross Dog", ["c1", "blitz"], 0.10, -0.9, [-0.02, -0.02, 0.05], "Two linebackers cross each other's paths to confuse the blocking."],
+    ["blitz", "fieldblitz", "Field Blitz", ["c3", "blitz"], 0.09, -0.6, [-0.04, -0.01, 0.01], "Pressure from the wide side of the field with zone behind it."],
+    ["blitz", "dimeblitz", "Dime Blitz", ["c1", "blitz"], 0.10, -0.4, [-0.05, -0.03, 0.04], "A sixth defensive back comes off the edge. Built for passing downs."],
+    ["blitz", "allout", "All-Out Blitz", ["c0", "blitz"], 0.16, -1.3, [0.0, -0.03, 0.10], "Seven rushers, no safety. The QB gets hit or someone scores."],
+
+    ["man", "doublespy", "Double Spy", ["c1"], 0.0, -0.8, [-0.04, -0.05, 0.0], "Two defenders mirror a running quarterback while the rest play man."],
+    ["man", "pressbail", "Press Bail", ["c1"], 0.02, -0.2, [-0.03, -0.05, -0.05], "Corners show press, then bail deep at the snap."],
+    ["man", "2manpress", "2-Man Press", ["c2m"], 0.01, 0.4, [-0.09, -0.06, -0.05], "Jam everyone at the line with two safeties over the top."],
+    ["man", "trail", "Trail Technique", ["c2m", "c1"], 0.01, 0.2, [-0.06, -0.08, -0.03], "Defenders trail a step behind and undercut the throw."],
+    ["man", "inleverage", "Inside Leverage", ["c1"], 0.02, -0.4, [-0.06, -0.06, 0.0], "Take away every inside route and make them throw to the sideline."],
+    ["man", "c1double", "Cover 1 Double", ["c1"], 0.01, -0.2, [-0.04, -0.05, -0.04], "Man on everyone, plus a double-team on the best receiver."],
+
+    ["zone", "buzz", "Cover 3 Buzz", ["c3"], 0.01, -0.5, [0.02, -0.04, -0.05], "Safety buzzes down to the hook zone to take away slants."],
+    ["zone", "seam3", "Seam-Match 3", ["c3", "c1"], 0.01, -0.3, [0.0, -0.05, -0.06], "Cover 3 where the underneath defenders carry seam routes."],
+    ["zone", "cover7", "Cover 7", ["c4", "c1"], 0.0, -0.1, [0.0, -0.05, -0.09], "Quarters that switches to man depending on the routes."],
+    ["zone", "c3hard", "Cover 3 Hard Flat", ["c3"], 0.01, -0.3, [-0.03, -0.01, -0.04], "Cover 3 with corners squatting on the flats."],
+    ["zone", "robber2", "Cover 2 Robber", ["c2"], 0.01, 0.1, [0.0, -0.05, -0.06], "Cover 2 with a linebacker robbing digs over the middle."],
+    ["zone", "mable", "Mod/Mable", ["c4", "c1"], 0.0, 0.0, [-0.02, -0.05, -0.08], "Man to the single-receiver side, quarters to the trips side."],
+
+    ["prevent", "dollar", "Dollar", ["prev", "c4"], -0.03, 1.8, [0.07, 0.01, -0.17], "Seven defensive backs on the field. Nothing gets behind them.", 2],
+    ["prevent", "deepmatch", "Deep Match", ["prev", "c3"], -0.02, 1.2, [0.05, -0.02, -0.13], "Deep defenders match any vertical route and stay on top.", 1],
+    ["prevent", "rush3", "Rush 3, Drop 8", ["prev", "c2"], -0.05, 1.6, [0.03, -0.07, -0.15], "Only three rushers. Eight defenders clog every throwing lane.", 1],
+    ["prevent", "bend", "Bend Don't Break", ["c4", "prev"], -0.02, 1.0, [0.06, -0.03, -0.12], "Give up the catch underneath and tackle right away.", 1],
+    ["prevent", "goalprev", "Goal-Line Prevent", ["prev", "c3"], -0.03, 1.4, [0.05, -0.01, -0.16], "Deep defenders sit on the goal line and protect the end zone.", 2],
+    ["prevent", "sticks", "Sticks Coverage", ["c4", "prev"], -0.01, 0.9, [0.07, -0.06, -0.1], "Everyone drops to the first-down marker and rallies up.", 1],
+
+    ["runstop", "tite", "Tite Front", ["box", "c3"], 0.02, -1.9, [0.02, 0.02, 0.02], "Three linemen in the inside gaps squeeze every run inside."],
+    ["runstop", "wide9", "Wide 9", ["box", "c1"], 0.05, -1.3, [0.01, 0.03, 0.04], "Ends line up way outside to set the edge and chase the QB."],
+    ["runstop", "dlslant", "Line Slant", ["box", "c1"], 0.03, -1.8, [0.02, 0.03, 0.04], "All four linemen slant one way at the snap to blow up blocking."],
+    ["runstop", "fivetwo", "5-2 Front", ["box", "c3"], 0.02, -2.0, [0.03, 0.03, 0.02], "Five down linemen and two linebackers. Old-school run stopper."],
+    ["runstop", "gapcontrol", "Gap Control", ["box", "c2"], 0.01, -1.5, [0.02, 0.0, -0.02], "Every defender owns one gap. Disciplined and hard to run on."],
+    ["runstop", "plug", "Plug & Fill", ["box", "c1"], 0.03, -2.1, [0.03, 0.04, 0.05], "Linemen plug the holes, linebackers flow in to fill and tackle."],
   ];
   for (const [cat, id, name, tags, rush, run, c, desc, soft] of DEF) {
     DEFENSE_PLAYBOOK.find((x) => x.id === cat).plays.push({ id, name, tags, rush, run, comp: { short: c[0], mid: c[1], deep: c[2] }, desc, soft: soft || 0 });
@@ -3199,7 +3301,7 @@ if (typeof module !== "undefined")
         <div class="hero-inner">
           <p class="eyebrow">Every era · 1985 to today · ${PLAYERS.length} legends</p>
           <h1>Draft the <span>Champs</span></h1>
-          <p class="lede">Draft a team of NFL greats, rated 66–99 from their real season averages. Then take over in random two-minute drills — lead the comeback on offense or protect the lead on defense — and win four straight to lift the trophy.</p>
+          <p class="lede">Draft a team of NFL greats, rated 70–99 against their own position from their real season averages. Then take over in random two-minute drills — lead the comeback on offense or protect the lead on defense — and win four straight to lift the trophy.</p>
           <div class="hero-helmets">${sample.map((p) => helmetTag(p, { colors: c, size: 58 })).join("")}</div>
         </div>
       </section>
@@ -3544,13 +3646,16 @@ if (typeof module !== "undefined")
     wrap.prepend(FIELD.ensureCanvas());
     FIELD.show(g, fieldInfo(g));
     document.getElementById("animToggle").onchange = (e) => { store.anim = e.target.checked; saveStore(store); };
-    document.getElementById("skipAnim").onclick = () => FIELD.skip();
+    document.getElementById("skipAnim").onclick = () => {
+      if (state.pendingSnap) state.pendingSnap.start();
+      FIELD.skip();
+    };
     wireCallPanel(g);
     if (g.phase === "over" && recordedFor !== g) setTimeout(() => { if (recordedFor !== g) showResult(); }, 700);
   }
 
   function dealPlays(cat, avoid) {
-    // 3 random plays from the formation's 9, different from the last deal when possible
+    // 3 random plays from the formation's 15, different from the last deal when possible
     for (let i = 0; i < 12; i++) {
       const ids = shuffle(cat.plays).slice(0, 3).map((p) => p.id);
       if (!avoid || ids.some((x) => !avoid.includes(x))) return ids;
@@ -3722,7 +3827,7 @@ if (typeof module !== "undefined")
         <div class="cats ${youOff ? "" : "def"}">${book.map((c) => `<button class="cat" data-cat="${c.id}"><i>${c.icon}</i><span>${c.name}</span></button>`).join("")}</div>
         ${extras}`;
     }
-    // Step 2: three of the formation's nine plays
+    // Step 2: three of the formation's 15 plays
     const ids = state.picks && state.picks.cat === cat.id ? state.picks.ids : (state.picks = { cat: cat.id, ids: dealPlays(cat) }).ids;
     return `<div class="play-head">
         <button class="sbtn back-btn" data-back>← Back</button>
@@ -3794,21 +3899,45 @@ if (typeof module !== "undefined")
     fn();
     animateIfPlayed(pre, lastBefore, () => afterAction(before));
   }
+  // Bring the field into view after a play is picked. On phones the field sits
+  // above the play list, so always scroll back up to it (below the sticky top
+  // bar). A second pass corrects a smooth scroll that a re-render interrupted.
+  function focusField() {
+    const mobile = window.matchMedia("(max-width: 820px)").matches;
+    const go = (behavior) => {
+      const fw = document.getElementById("fieldWrap");
+      if (!fw) return;
+      const bar = document.querySelector(".topbar");
+      const top = (bar ? bar.getBoundingClientRect().height : 0) + 6;
+      const r = fw.getBoundingClientRect();
+      if (!mobile && r.top >= top && r.bottom <= window.innerHeight) return;
+      const y = Math.max(0, r.top + window.scrollY - top);
+      if (Math.abs(window.scrollY - y) > 4) window.scrollTo({ top: y, behavior });
+    };
+    requestAnimationFrame(() => go("smooth"));
+    setTimeout(() => go("auto"), 500);
+  }
   function animateIfPlayed(pre, lastBefore, done) {
     const g = state.game;
     const played = g.last && g.last !== lastBefore;
-    if (!played || store.anim === false) { done(); return; }
+    if (played && store.anim === false) { done(); focusField(); return; }
+    if (!played) { done(); return; }
     state.animating = true;
     const panel = document.getElementById("callpanel");
     if (panel) panel.classList.add("locked");
     const sk = document.getElementById("skipAnim");
     if (sk) sk.hidden = false;
-    const fw = document.getElementById("fieldWrap");
-    if (fw) {
-      const r = fw.getBoundingClientRect();
-      if (r.top < 0 || r.bottom > window.innerHeight) fw.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
-    FIELD.play(pre, g.last, g, fieldInfo(g), () => { state.animating = false; done(); });
+    // Scroll the field into view, then wait 1 second before the snap so the
+    // whole play is visible (Skip still works during the wait).
+    focusField();
+    const info = fieldInfo(g);
+    const start = () => {
+      if (!state.pendingSnap) return;
+      clearTimeout(state.pendingSnap.timer);
+      state.pendingSnap = null;
+      FIELD.play(pre, g.last, g, info, () => { state.animating = false; done(); });
+    };
+    state.pendingSnap = { start, timer: setTimeout(start, 1000) };
   }
 
   // Let the CPU take any pre-snap actions (timeouts, kneels, field goals…)
