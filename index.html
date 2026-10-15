@@ -521,8 +521,8 @@ const HELMET_ART = {
    DRAFT THE CHAMPS — PLAYER DATABASE
    ---------------------------------------------------------------------
    Every player here played in the NFL from 1985 to the present.
-   Stats are CAREER totals (approximate; active players are through the
-   2024 season). The game turns them into per-17-game "season averages"
+   Stats are CAREER totals from Pro Football Reference (active players
+   through the 2025 season). The game turns them into per-17-game "season averages"
    and then into a 60–99 overall rating, compared against everyone else
    at the same position. 99 = best at that position in the database.
 
@@ -538,8 +538,8 @@ const PLAYER_DATA = {
     ["Tom Brady","NE",2000,2022,335,89214,649,212,97.2,1123,15,3],
     ["Peyton Manning","IND",1998,2015,266,71940,539,251,96.5,667,14,7],
     ["Drew Brees","NO",2001,2020,287,80358,571,243,98.7,752,13,1],
-    ["Aaron Rodgers","GB",2005,0,248,62952,503,116,102.6,3600,10,4],
-    ["Patrick Mahomes","KC",2017,0,112,32352,245,74,102.1,2551,7,2],
+    ["Aaron Rodgers","GB",2005,0,264,67508,537,127,101.9,3600,10,4],
+    ["Patrick Mahomes","KC",2017,0,128,36976,276,87,100.9,2900,7,2],
     ["Dan Marino","MIA",1983,1999,242,61361,420,252,86.4,87,9,3],
     ["Joe Montana","SF",1979,1994,192,40551,273,139,92.3,1676,8,3],
     ["John Elway","DEN",1983,1998,234,51475,300,226,79.9,3407,9,0],
@@ -550,17 +550,17 @@ const PLAYER_DATA = {
     ["Warren Moon","HOU",1984,2000,208,49325,291,233,80.9,1736,9,0],
     ["Kurt Warner","STL",1998,2009,124,32344,208,128,93.7,0,4,2],
     ["Ben Roethlisberger","PIT",2004,2021,249,64088,418,211,93.5,1373,6,0],
-    ["Philip Rivers","LAC",2004,2020,244,63440,421,209,95.2,435,8,0],
-    ["Russell Wilson","SEA",2012,0,196,46138,350,114,99.6,5500,10,0],
-    ["Lamar Jackson","BAL",2018,0,94,18500,160,49,99.0,6173,3,2],
-    ["Josh Allen","BUF",2018,0,110,23700,187,74,92.9,4300,3,0],
-    ["Joe Burrow","CIN",2020,0,66,19001,140,46,100.0,900,1,0],
-    ["Jalen Hurts","PHI",2020,0,77,14667,85,39,94.8,3500,2,0],
-    ["Dak Prescott","DAL",2016,0,130,31437,230,90,97.2,2000,3,0],
-    ["Matthew Stafford","DET",2009,0,226,59809,390,177,89.9,1000,2,0],
+    ["Philip Rivers","LAC",2004,2025,248,63984,425,212,95.0,435,8,0],
+    ["Russell Wilson","SEA",2012,0,200,46966,353,114,99.3,5568,10,0],
+    ["Lamar Jackson","BAL",2018,0,108,23575,193,57,102.7,6666,3,2],
+    ["Josh Allen","BUF",2018,0,127,31351,227,98,94.6,4960,3,0],
+    ["Joe Burrow","CIN",2020,0,76,22171,168,54,101.3,900,1,0],
+    ["Jalen Hurts","PHI",2020,0,93,18824,118,45,93.8,3850,2,0],
+    ["Dak Prescott","DAL",2016,0,147,37370,252,95,98.3,2000,3,0],
+    ["Matthew Stafford","DET",2009,0,243,66088,432,202,92.3,1000,2,0],
     ["Matt Ryan","ATL",2008,2022,234,62792,381,183,93.6,900,4,1],
     ["Eli Manning","NYG",2004,2019,236,57023,366,244,84.1,567,4,0],
-    ["Cam Newton","CAR",2011,2021,148,32382,194,123,86.0,5628,3,1],
+    ["Cam Newton","CAR",2011,2021,148,32382,194,123,85.2,5628,3,1],
     ["Randall Cunningham","PHI",1985,2001,161,29979,207,134,81.5,4928,4,0],
     ["Boomer Esiason","CIN",1984,1997,187,37920,247,184,81.1,1598,4,1],
     ["Steve McNair","TEN",1995,2007,161,31304,174,119,82.8,3590,3,0],
@@ -568,10 +568,10 @@ const PLAYER_DATA = {
     ["Michael Vick","ATL",2001,2015,143,22464,133,88,80.4,6109,4,0],
     ["Rich Gannon","OAK",1987,2004,181,28743,180,104,84.7,2449,4,2],
     ["Tony Romo","DAL",2004,2016,156,34183,248,117,97.1,0,4,0],
-    ["Kirk Cousins","WAS",2012,0,170,44000,306,128,96.0,700,4,0],
+    ["Kirk Cousins","WAS",2012,0,182,45969,310,135,96.9,700,4,0],
     ["Kerry Collins","NYG",1995,2011,197,40922,208,196,73.8,400,2,0],
     ["Trent Dilfer","TB",1994,2007,136,20518,113,129,70.2,1000,1,0],
-    ["Ryan Fitzpatrick","BUF",2005,2021,165,34990,223,169,81.1,3000,0,0],
+    ["Ryan Fitzpatrick","BUF",2005,2021,165,34990,223,169,82.3,3000,0,0],
   ],
 
   // name, team, from, to, games, rushYds, rushTD, yardsPerCarry, receptions, recYds, pb, ap
@@ -589,23 +589,23 @@ const PLAYER_DATA = {
     ["Marcus Allen","LV",1982,1997,222,12243,123,4.1,587,5411,6,2],
     ["Terrell Davis","DEN",1995,2001,78,7607,60,4.6,169,1280,3,3],
     ["Frank Gore","SF",2005,2020,241,16000,81,4.3,484,3985,5,0],
-    ["Derrick Henry","TEN",2016,0,139,11423,106,4.9,160,1500,5,2],
-    ["Christian McCaffrey","SF",2017,0,102,6387,55,4.7,545,4466,3,2],
+    ["Derrick Henry","TEN",2016,0,156,13494,129,5.0,185,1700,5,2],
+    ["Christian McCaffrey","SF",2017,0,119,7875,67,4.6,645,5250,3,2],
     ["Shaun Alexander","SEA",2000,2008,122,9453,100,4.3,225,1520,3,1],
     ["Jamal Lewis","BAL",2000,2009,131,10607,58,4.2,221,1879,1,1],
     ["Priest Holmes","KC",1997,2007,113,8172,86,4.6,339,2962,3,3],
     ["Ricky Watters","SF",1992,2001,144,10643,78,4.1,467,4248,5,0],
     ["Jerome Bettis","PIT",1993,2005,192,13662,91,3.9,200,1449,6,2],
     ["Marshawn Lynch","SEA",2007,2019,154,10413,85,4.2,287,2214,5,1],
-    ["Saquon Barkley","PHI",2018,0,90,7216,48,4.6,300,2300,3,1],
+    ["Saquon Barkley","PHI",2018,0,106,8538,55,4.7,330,2550,3,1],
     ["Le'Veon Bell","PIT",2013,2021,105,6554,42,4.2,399,3289,3,2],
     ["Tiki Barber","NYG",1997,2006,154,10449,55,4.7,586,5183,3,1],
     ["Clinton Portis","WAS",2002,2010,113,9923,75,4.4,247,2018,2,0],
     ["Fred Taylor","JAX",1998,2010,153,11695,66,4.6,290,2384,1,0],
     ["Ahman Green","GB",1997,2009,148,9205,60,4.5,378,2883,4,0],
-    ["Jonathan Taylor","IND",2020,0,70,6013,51,4.9,120,950,2,1],
+    ["Jonathan Taylor","IND",2020,0,87,7996,75,4.9,150,1150,2,1],
     ["Brian Westbrook","PHI",2002,2010,121,6335,41,4.6,442,3940,2,1],
-    ["Alvin Kamara","NO",2017,0,120,6100,60,4.5,600,5000,5,0],
+    ["Alvin Kamara","NO",2017,0,134,7336,63,4.4,619,5150,5,0],
     ["Chris Johnson","TEN",2008,2017,143,9651,55,4.5,342,2255,3,1],
     ["Deuce McAllister","NO",2001,2008,97,6096,49,4.2,229,1720,2,0],
   ],
@@ -627,24 +627,24 @@ const PLAYER_DATA = {
     ["Steve Smith Sr.","CAR",2001,2016,219,1031,14731,81,5,2],
     ["Julio Jones","ATL",2011,2023,165,914,13703,66,7,2],
     ["Antonio Brown","PIT",2010,2021,144,928,12291,83,7,4],
-    ["Davante Adams","GB",2014,0,165,1000,12500,108,7,3],
-    ["Tyreek Hill","KC",2016,0,140,800,11000,78,8,4],
-    ["Justin Jefferson","MIN",2020,0,75,495,7432,40,4,2],
-    ["Ja'Marr Chase","CIN",2021,0,64,395,5425,46,4,1],
-    ["Cooper Kupp","LAR",2017,0,108,630,7776,50,2,1],
-    ["DeAndre Hopkins","HOU",2013,0,180,1055,13800,83,5,3],
-    ["Mike Evans","TB",2014,0,170,821,12600,105,6,0],
+    ["Davante Adams","GB",2014,0,179,1044,13074,121,7,3],
+    ["Tyreek Hill","KC",2016,0,144,819,11363,83,8,4],
+    ["Justin Jefferson","MIN",2020,0,92,598,8738,45,4,2],
+    ["Ja'Marr Chase","CIN",2021,0,81,547,7126,58,4,1],
+    ["Cooper Kupp","LAR",2017,0,123,692,8498,60,2,1],
+    ["DeAndre Hopkins","HOU",2013,0,197,1006,13295,85,5,3],
+    ["Mike Evans","TB",2014,0,180,890,13378,111,6,0],
     ["Hines Ward","PIT",1998,2011,217,1000,12083,85,4,0],
     ["Torry Holt","STL",1999,2009,173,920,13382,74,7,1],
     ["Andre Reed","BUF",1985,2000,234,951,13198,87,7,0],
     ["Sterling Sharpe","GB",1988,1994,112,595,8134,65,5,3],
     ["Chad Johnson","CIN",2001,2011,166,766,11059,67,6,1],
     ["Wes Welker","NE",2004,2015,186,903,9924,50,5,2],
-    ["Odell Beckham Jr.","NYG",2014,2024,114,588,8000,59,3,0],
+    ["Odell Beckham Jr.","NYG",2014,2024,114,575,7987,59,3,0],
     ["A.J. Green","CIN",2011,2022,155,727,10514,69,7,0],
     ["Brandon Marshall","CHI",2006,2018,182,970,12351,83,6,1],
-    ["Amon-Ra St. Brown","DET",2021,0,67,430,4851,33,3,1],
-    ["CeeDee Lamb","DAL",2020,0,82,496,6339,38,4,1],
+    ["Amon-Ra St. Brown","DET",2021,0,84,584,6624,49,3,1],
+    ["CeeDee Lamb","DAL",2020,0,98,610,7923,45,4,1],
     ["Art Monk","WAS",1980,1995,224,940,12721,68,3,1],
     ["Henry Ellard","LAR",1983,1998,228,814,13777,65,3,1],
     ["Herman Moore","DET",1991,2002,146,670,9174,62,4,1],
@@ -658,20 +658,20 @@ const PLAYER_DATA = {
   TE: [
     ["Tony Gonzalez","KC",1997,2013,270,1325,15127,111,14,6],
     ["Rob Gronkowski","NE",2010,2021,143,621,9286,92,5,4],
-    ["Travis Kelce","KC",2013,0,175,1004,12151,77,10,4],
+    ["Travis Kelce","KC",2013,0,192,1096,13248,84,10,4],
     ["Shannon Sharpe","DEN",1990,2003,204,815,10060,62,8,4],
     ["Antonio Gates","LAC",2003,2018,236,955,11841,116,8,3],
     ["Jason Witten","DAL",2003,2020,271,1228,13046,74,11,2],
-    ["Jimmy Graham","NO",2010,2023,202,719,8580,86,5,1],
-    ["George Kittle","SF",2017,0,110,523,7071,44,5,2],
+    ["Jimmy Graham","NO",2010,2023,202,719,8545,89,5,1],
+    ["George Kittle","SF",2017,0,122,616,8276,56,5,2],
     ["Ben Coates","NE",1991,2000,158,499,5555,50,5,2],
     ["Mark Bavaro","NYG",1985,1994,128,351,4733,39,2,2],
     ["Keith Jackson","PHI",1988,1996,129,441,5283,49,5,3],
     ["Dallas Clark","IND",2003,2013,154,505,5665,53,1,1],
     ["Vernon Davis","SF",2006,2019,205,583,7562,63,2,0],
     ["Greg Olsen","CAR",2007,2020,207,742,8683,60,3,0],
-    ["Zach Ertz","PHI",2013,0,180,800,8600,53,3,0],
-    ["Mark Andrews","BAL",2018,0,100,449,5600,55,3,1],
+    ["Zach Ertz","PHI",2013,0,190,828,8614,57,3,0],
+    ["Mark Andrews","BAL",2018,0,117,506,6129,57,3,1],
     ["Kellen Winslow II","CLE",2004,2013,101,469,5236,25,1,0],
   ],
 
@@ -720,11 +720,11 @@ const PLAYER_DATA = {
     ["Chris Doleman","MIN",1985,1999,232,150.5,44,8,2],
     ["Dwight Freeney","IND",2002,2017,218,125.5,47,7,3],
     ["DeMarcus Ware","DAL",2005,2016,179,138.5,35,9,4],
-    ["Von Miller","DEN",2011,0,180,129.5,33,8,3],
-    ["T.J. Watt","PIT",2017,0,121,108,32,7,4],
-    ["Myles Garrett","CLE",2017,0,117,102.5,25,6,4],
-    ["Nick Bosa","SF",2019,0,77,66.5,10,5,1],
-    ["Khalil Mack","LV",2014,0,165,112,33,8,3],
+    ["Von Miller","DEN",2011,0,192,138.5,33,8,3],
+    ["T.J. Watt","PIT",2017,0,136,119.5,32,7,4],
+    ["Myles Garrett","CLE",2017,0,134,125.5,25,6,4],
+    ["Nick Bosa","SF",2019,0,80,64.5,10,5,1],
+    ["Khalil Mack","LV",2014,0,179,116,33,8,3],
     ["Simeon Rice","TB",1996,2007,174,122,27,3,1],
     ["Jared Allen","MIN",2004,2015,187,136,32,5,4],
     ["Terrell Suggs","BAL",2003,2019,246,139,37,7,1],
@@ -733,8 +733,8 @@ const PLAYER_DATA = {
     ["Kevin Williams","MIN",2003,2015,202,63,6,6,5],
     ["Ndamukong Suh","DET",2010,2022,202,71.5,6,5,3],
     ["Fletcher Cox","PHI",2012,2023,189,70,15,6,1],
-    ["Chris Jones","KC",2016,0,140,80,10,6,2],
-    ["Maxx Crosby","LV",2019,0,98,59.5,13,4,0],
+    ["Chris Jones","KC",2016,0,157,87.5,10,6,2],
+    ["Maxx Crosby","LV",2019,0,115,71.5,13,4,0],
     ["John Abraham","ATL",2000,2014,192,133.5,47,5,1],
     ["Robert Mathis","IND",2003,2016,192,123,54,6,1],
     ["Charles Haley","SF",1986,1999,169,100.5,26,5,2],
@@ -743,7 +743,7 @@ const PLAYER_DATA = {
 
   // name, team, from, to, games, tackles, sacks, INT, pb, ap
   LB: [
-    ["Lawrence Taylor","NYG",1981,1993,184,1088,132.5,9,10,8],
+    ["Lawrence Taylor","NYG",1981,1993,184,1088,142,9,10,8],
     ["Ray Lewis","BAL",1996,2012,228,2059,41.5,31,13,7],
     ["Derrick Thomas","KC",1989,1999,169,641,126.5,1,9,2],
     ["Junior Seau","LAC",1990,2009,268,1849,56.5,18,12,6],
@@ -754,15 +754,15 @@ const PLAYER_DATA = {
     ["Patrick Willis","SF",2007,2014,112,950,20.5,8,7,5],
     ["Zach Thomas","MIA",1996,2008,184,1734,20.5,17,7,5],
     ["Kevin Greene","PIT",1985,1999,228,778,160,5,5,2],
-    ["Bobby Wagner","SEA",2012,0,205,1846,34,13,10,6],
-    ["Lavonte David","TB",2012,0,200,1650,35,14,1,1],
+    ["Bobby Wagner","SEA",2012,0,222,2050,34,13,10,6],
+    ["Lavonte David","TB",2012,0,217,1800,35,14,1,1],
     ["London Fletcher","WAS",1998,2013,256,2039,39,23,4,0],
-    ["Rickey Jackson","NO",1981,1995,227,1100,128,8,6,0],
+    ["Rickey Jackson","NO",1981,1995,227,1100,136,8,6,0],
     ["Cornelius Bennett","BUF",1987,2000,206,1190,71.5,7,5,2],
     ["Pat Swilling","NO",1986,1998,186,600,107.5,2,5,1],
-    ["Fred Warner","SF",2018,0,110,860,8,10,4,3],
-    ["Roquan Smith","BAL",2018,0,113,1000,18,8,3,2],
-    ["Micah Parsons","DAL",2021,0,64,280,52.5,1,4,2],
+    ["Fred Warner","SF",2018,0,127,1000,8,10,4,3],
+    ["Roquan Smith","BAL",2018,0,130,1170,18,8,3,2],
+    ["Micah Parsons","DAL",2021,0,78,280,65,1,4,2],
     ["Jonathan Vilma","NO",2004,2013,133,1023,9,12,3,1],
     ["Takeo Spikes","CIN",1998,2012,219,1400,29,17,2,0],
     ["Joey Porter","PIT",1999,2011,182,680,98,15,4,1],
@@ -781,8 +781,8 @@ const PLAYER_DATA = {
     ["Aeneas Williams","ARI",1991,2004,211,55,9,8,3],
     ["Richard Sherman","SEA",2011,2021,154,37,2,5,3],
     ["Patrick Peterson","ARI",2011,2023,200,36,1,8,3],
-    ["Jalen Ramsey","LAR",2016,0,135,24,2,7,3],
-    ["Sauce Gardner","NYJ",2022,0,47,2,0,2,2],
+    ["Jalen Ramsey","LAR",2016,0,150,24,2,7,3],
+    ["Sauce Gardner","NYJ",2022,0,59,2,0,2,2],
     ["Ronde Barber","TB",1997,2012,241,47,14,5,3],
     ["Asante Samuel","NE",2003,2013,159,51,4,4,1],
     ["Nnamdi Asomugha","LV",2003,2013,141,15,1,3,2],
@@ -790,7 +790,7 @@ const PLAYER_DATA = {
     ["Eric Allen","PHI",1988,2001,210,54,8,6,1],
     ["Troy Vincent","PHI",1992,2006,223,47,3,5,1],
     ["Antoine Winfield","MIN",1999,2012,196,27,3,3,0],
-    ["Stephon Gilmore","NE",2012,0,175,33,2,5,2],
+    ["Stephon Gilmore","NE",2012,0,175,32,2,5,2],
     ["Darius Slay","PHI",2013,0,180,30,2,6,1],
     ["Josh Norman","CAR",2012,2022,136,20,3,1,1],
   ],
@@ -809,34 +809,99 @@ const PLAYER_DATA = {
     ["Tyrann Mathieu","KC",2013,0,170,36,6,3,2],
     ["Darren Woodson","DAL",1992,2003,178,23,7,5,3],
     ["LeRoy Butler","GB",1990,2001,181,38,13,4,4],
-    ["Derwin James","LAC",2018,0,85,8,5,4,1],
-    ["Minkah Fitzpatrick","PIT",2018,0,110,21,4,5,3],
-    ["Kevin Byard","TEN",2016,0,150,33,5,2,2],
-    ["Harrison Smith","MIN",2012,0,185,36,9,6,1],
-    ["Kyle Hamilton","BAL",2022,0,50,7,2,2,1],
+    ["Derwin James","LAC",2018,0,102,8,5,4,1],
+    ["Minkah Fitzpatrick","PIT",2018,0,125,21,4,5,3],
+    ["Kevin Byard","TEN",2016,0,167,36,5,2,2],
+    ["Harrison Smith","MIN",2012,0,202,39,9,6,1],
+    ["Kyle Hamilton","BAL",2022,0,67,7,2,2,1],
     ["Darren Sharper","GB",1997,2010,207,63,7,5,2],
     ["Bob Sanders","IND",2004,2011,50,6,3,2,2],
   ],
 
   // name, team, from, to, games, FGmade, FGatt, longFG, pb, ap
   K: [
-    ["Justin Tucker","BAL",2012,2024,196,417,465,66,5,5],
+    ["Justin Tucker","BAL",2012,2024,196,417,468,66,5,5],
     ["Adam Vinatieri","NE",1996,2019,365,599,715,57,3,3],
     ["Morten Andersen","NO",1982,2007,382,565,709,63,7,3],
     ["Gary Anderson","PIT",1982,2004,353,538,672,60,4,2],
-    ["Jason Elam","DEN",1993,2009,268,436,538,63,3,0],
-    ["Stephen Gostkowski","NE",2006,2020,229,374,427,62,4,2],
-    ["Harrison Butker","KC",2017,0,110,228,256,62,1,0],
-    ["Matt Prater","DEN",2007,0,270,363,437,64,1,0],
-    ["Brandon Aubrey","DAL",2023,0,34,75,83,65,1,1],
+    ["Jason Elam","DEN",1993,2009,268,436,540,63,3,0],
+    ["Stephen Gostkowski","NE",2006,2020,229,392,454,62,4,2],
+    ["Harrison Butker","KC",2017,0,127,258,293,62,1,0],
+    ["Matt Prater","DEN",2007,0,270,425,507,64,1,0],
+    ["Brandon Aubrey","DAL",2023,0,51,121,139,65,1,1],
     ["Nick Lowery","KC",1978,1996,260,383,479,58,3,2],
     ["Jason Hanson","DET",1992,2012,327,495,601,56,2,0],
-    ["Sebastian Janikowski","LV",2000,2018,268,436,538,63,1,0],
+    ["Sebastian Janikowski","LV",2000,2018,268,436,542,63,1,0],
   ],
 };
 
 // Jersey number each player is best known for (shown inside the helmet)
 const JERSEY = {"Tom Brady": 12,"Peyton Manning": 18,"Drew Brees": 9,"Aaron Rodgers": 12,"Patrick Mahomes": 15,"Dan Marino": 13,"Joe Montana": 16,"John Elway": 7,"Steve Young": 8,"Brett Favre": 4,"Troy Aikman": 8,"Jim Kelly": 12,"Warren Moon": 1,"Kurt Warner": 13,"Ben Roethlisberger": 7,"Philip Rivers": 17,"Russell Wilson": 3,"Lamar Jackson": 8,"Josh Allen": 17,"Joe Burrow": 9,"Jalen Hurts": 1,"Dak Prescott": 4,"Matthew Stafford": 9,"Matt Ryan": 2,"Eli Manning": 10,"Cam Newton": 1,"Randall Cunningham": 12,"Boomer Esiason": 7,"Steve McNair": 9,"Donovan McNabb": 5,"Michael Vick": 7,"Rich Gannon": 12,"Tony Romo": 9,"Kirk Cousins": 8,"Kerry Collins": 5,"Trent Dilfer": 12,"Ryan Fitzpatrick": 14,"Emmitt Smith": 22,"Barry Sanders": 20,"Walter Payton": 34,"Eric Dickerson": 29,"LaDainian Tomlinson": 21,"Adrian Peterson": 28,"Marshall Faulk": 28,"Thurman Thomas": 34,"Curtis Martin": 28,"Edgerrin James": 32,"Marcus Allen": 32,"Terrell Davis": 30,"Frank Gore": 21,"Derrick Henry": 22,"Christian McCaffrey": 23,"Shaun Alexander": 37,"Jamal Lewis": 31,"Priest Holmes": 31,"Ricky Watters": 32,"Jerome Bettis": 36,"Marshawn Lynch": 24,"Saquon Barkley": 26,"Le'Veon Bell": 26,"Tiki Barber": 21,"Clinton Portis": 26,"Fred Taylor": 28,"Ahman Green": 30,"Jonathan Taylor": 28,"Brian Westbrook": 36,"Alvin Kamara": 41,"Chris Johnson": 28,"Deuce McAllister": 26,"Jerry Rice": 80,"Randy Moss": 84,"Terrell Owens": 81,"Larry Fitzgerald": 11,"Marvin Harrison": 88,"Calvin Johnson": 81,"Tim Brown": 81,"Cris Carter": 80,"Isaac Bruce": 80,"Michael Irvin": 88,"Andre Johnson": 80,"Reggie Wayne": 87,"Steve Smith Sr.": 89,"Julio Jones": 11,"Antonio Brown": 84,"Davante Adams": 17,"Tyreek Hill": 10,"Justin Jefferson": 18,"Ja'Marr Chase": 1,"Cooper Kupp": 10,"DeAndre Hopkins": 10,"Mike Evans": 13,"Hines Ward": 86,"Torry Holt": 81,"Andre Reed": 83,"Sterling Sharpe": 84,"Chad Johnson": 85,"Wes Welker": 83,"Odell Beckham Jr.": 13,"A.J. Green": 18,"Brandon Marshall": 15,"Amon-Ra St. Brown": 14,"CeeDee Lamb": 88,"Art Monk": 81,"Henry Ellard": 80,"Herman Moore": 84,"Jimmy Smith": 82,"Rod Smith": 80,"Derrick Mason": 85,"Keenan McCardell": 87,"Tony Gonzalez": 88,"Rob Gronkowski": 87,"Travis Kelce": 87,"Shannon Sharpe": 84,"Antonio Gates": 85,"Jason Witten": 82,"Jimmy Graham": 80,"George Kittle": 85,"Ben Coates": 87,"Mark Bavaro": 89,"Keith Jackson": 88,"Dallas Clark": 44,"Vernon Davis": 85,"Greg Olsen": 88,"Zach Ertz": 86,"Mark Andrews": 89,"Kellen Winslow II": 82,"Anthony Muñoz": 78,"Jonathan Ogden": 75,"Walter Jones": 71,"Larry Allen": 73,"Bruce Matthews": 74,"Orlando Pace": 76,"Joe Thomas": 73,"Willie Roaf": 77,"Randall McDaniel": 64,"Steve Hutchinson": 76,"Alan Faneca": 66,"Dermontti Dawson": 63,"Gary Zimmerman": 65,"Will Shields": 68,"Jason Kelce": 62,"Zack Martin": 70,"Trent Williams": 71,"Quenton Nelson": 56,"Tyron Smith": 77,"Jeff Saturday": 63,"Nick Mangold": 74,"Logan Mankins": 70,"Lane Johnson": 65,"Penei Sewell": 58,"Mark Schlereth": 69,"Reggie White": 92,"Bruce Smith": 78,"Michael Strahan": 92,"J.J. Watt": 99,"Aaron Donald": 99,"Julius Peppers": 90,"Jason Taylor": 99,"Warren Sapp": 99,"John Randle": 93,"Cortez Kennedy": 96,"Richard Dent": 95,"Chris Doleman": 56,"Dwight Freeney": 93,"DeMarcus Ware": 94,"Von Miller": 58,"T.J. Watt": 90,"Myles Garrett": 95,"Nick Bosa": 97,"Khalil Mack": 52,"Simeon Rice": 97,"Jared Allen": 69,"Terrell Suggs": 55,"Haloti Ngata": 92,"Vince Wilfork": 75,"Kevin Williams": 93,"Ndamukong Suh": 90,"Fletcher Cox": 91,"Chris Jones": 95,"Maxx Crosby": 98,"John Abraham": 55,"Robert Mathis": 98,"Charles Haley": 94,"Leslie O'Neal": 91,"Lawrence Taylor": 56,"Ray Lewis": 52,"Derrick Thomas": 58,"Junior Seau": 55,"Brian Urlacher": 54,"Derrick Brooks": 55,"Mike Singletary": 50,"Luke Kuechly": 59,"Patrick Willis": 52,"Zach Thomas": 54,"Kevin Greene": 91,"Bobby Wagner": 54,"Lavonte David": 54,"London Fletcher": 59,"Rickey Jackson": 57,"Cornelius Bennett": 97,"Pat Swilling": 56,"Fred Warner": 54,"Roquan Smith": 0,"Micah Parsons": 11,"Jonathan Vilma": 51,"Takeo Spikes": 51,"Joey Porter": 55,"James Harrison": 92,"Deion Sanders": 21,"Rod Woodson": 26,"Darrell Green": 28,"Champ Bailey": 24,"Charles Woodson": 21,"Darrelle Revis": 24,"Ty Law": 24,"Aeneas Williams": 35,"Richard Sherman": 25,"Patrick Peterson": 21,"Jalen Ramsey": 5,"Sauce Gardner": 1,"Ronde Barber": 20,"Asante Samuel": 22,"Nnamdi Asomugha": 21,"Albert Lewis": 29,"Eric Allen": 21,"Troy Vincent": 23,"Antoine Winfield": 26,"Stephon Gilmore": 24,"Darius Slay": 24,"Josh Norman": 24,"Ed Reed": 20,"Troy Polamalu": 43,"Ronnie Lott": 42,"Brian Dawkins": 20,"Steve Atwater": 27,"John Lynch": 47,"Earl Thomas": 29,"Kam Chancellor": 31,"Eric Weddle": 32,"Tyrann Mathieu": 32,"Darren Woodson": 28,"LeRoy Butler": 36,"Derwin James": 3,"Minkah Fitzpatrick": 39,"Kevin Byard": 31,"Harrison Smith": 22,"Kyle Hamilton": 14,"Darren Sharper": 42,"Bob Sanders": 21,"Justin Tucker": 9,"Adam Vinatieri": 4,"Morten Andersen": 7,"Gary Anderson": 1,"Jason Elam": 1,"Stephen Gostkowski": 3,"Harrison Butker": 7,"Matt Prater": 5,"Brandon Aubrey": 17,"Nick Lowery": 8,"Jason Hanson": 4,"Sebastian Janikowski": 11};
+
+// Career honors (through the 2024 season awards):
+// mvp = league MVP, sb = Super Bowl wins, hof = Pro Football Hall of Fame,
+// dpoy / opoy = Defensive / Offensive Player of the Year.
+const HONORS = {
+  "Tom Brady": { mvp: 3, sb: 7 }, "Peyton Manning": { mvp: 5, sb: 2, hof: 1 }, "Drew Brees": { sb: 1, opoy: 2 },
+  "Aaron Rodgers": { mvp: 4, sb: 1 }, "Patrick Mahomes": { mvp: 2, sb: 3 }, "Dan Marino": { mvp: 1, hof: 1, opoy: 1 },
+  "Joe Montana": { mvp: 2, sb: 4, hof: 1 }, "John Elway": { mvp: 1, sb: 2, hof: 1 }, "Steve Young": { mvp: 2, sb: 1, hof: 1 },
+  "Brett Favre": { mvp: 3, sb: 1, hof: 1 }, "Troy Aikman": { sb: 3, hof: 1 }, "Jim Kelly": { hof: 1 },
+  "Warren Moon": { hof: 1, opoy: 1 }, "Kurt Warner": { mvp: 2, sb: 1, hof: 1 }, "Ben Roethlisberger": { sb: 2 },
+  "Russell Wilson": { sb: 1 }, "Lamar Jackson": { mvp: 2 }, "Josh Allen": { mvp: 1 }, "Jalen Hurts": { sb: 1 },
+  "Matthew Stafford": { sb: 1 }, "Matt Ryan": { mvp: 1, opoy: 1 }, "Eli Manning": { sb: 2 }, "Cam Newton": { mvp: 1, opoy: 1 },
+  "Boomer Esiason": { mvp: 1 }, "Steve McNair": { mvp: 1 }, "Rich Gannon": { mvp: 1 }, "Trent Dilfer": { sb: 1 },
+
+  "Emmitt Smith": { mvp: 1, sb: 3, hof: 1 }, "Barry Sanders": { mvp: 1, hof: 1, opoy: 2 }, "Walter Payton": { mvp: 1, sb: 1, hof: 1 },
+  "Eric Dickerson": { hof: 1, opoy: 1 }, "LaDainian Tomlinson": { mvp: 1, hof: 1, opoy: 1 }, "Adrian Peterson": { mvp: 1, opoy: 1 },
+  "Marshall Faulk": { mvp: 1, sb: 1, hof: 1, opoy: 3 }, "Thurman Thomas": { mvp: 1, hof: 1, opoy: 1 }, "Curtis Martin": { hof: 1 },
+  "Edgerrin James": { hof: 1 }, "Marcus Allen": { mvp: 1, sb: 1, hof: 1, opoy: 1 }, "Terrell Davis": { mvp: 1, sb: 2, hof: 1, opoy: 1 },
+  "Derrick Henry": { opoy: 1 }, "Christian McCaffrey": { opoy: 1 }, "Shaun Alexander": { mvp: 1 }, "Jamal Lewis": { sb: 1, opoy: 1 },
+  "Priest Holmes": { opoy: 1 }, "Ricky Watters": { sb: 1 }, "Jerome Bettis": { sb: 1, hof: 1 }, "Marshawn Lynch": { sb: 1 },
+  "Saquon Barkley": { sb: 1, opoy: 1 }, "Chris Johnson": { opoy: 1 },
+
+  "Jerry Rice": { sb: 3, hof: 1, opoy: 1 }, "Randy Moss": { hof: 1 }, "Terrell Owens": { hof: 1 }, "Marvin Harrison": { sb: 1, hof: 1 },
+  "Calvin Johnson": { hof: 1 }, "Tim Brown": { hof: 1 }, "Cris Carter": { hof: 1 }, "Isaac Bruce": { sb: 1, hof: 1 },
+  "Michael Irvin": { sb: 3, hof: 1 }, "Andre Johnson": { hof: 1 }, "Reggie Wayne": { sb: 1, hof: 1 }, "Justin Jefferson": { opoy: 1 },
+  "Cooper Kupp": { sb: 1, opoy: 1 }, "Mike Evans": { sb: 1 }, "Hines Ward": { sb: 2 }, "Torry Holt": { sb: 1 },
+  "Andre Reed": { hof: 1 }, "Sterling Sharpe": { hof: 1 }, "Odell Beckham Jr.": { sb: 1 }, "Art Monk": { sb: 2, hof: 1 },
+  "Rod Smith": { sb: 2 }, "Keenan McCardell": { sb: 1 }, "Antonio Brown": { sb: 1 },
+  "Tony Gonzalez": { hof: 1 }, "Rob Gronkowski": { sb: 4 }, "Travis Kelce": { sb: 3 }, "Shannon Sharpe": { sb: 3, hof: 1 },
+  "Antonio Gates": { hof: 1 }, "Mark Bavaro": { sb: 2 }, "Dallas Clark": { sb: 1 }, "Vernon Davis": { sb: 1 }, "Zach Ertz": { sb: 1 },
+
+  "Anthony Muñoz": { hof: 1 }, "Jonathan Ogden": { sb: 1, hof: 1 }, "Walter Jones": { hof: 1 }, "Larry Allen": { sb: 1, hof: 1 },
+  "Bruce Matthews": { hof: 1 }, "Orlando Pace": { sb: 1, hof: 1 }, "Joe Thomas": { hof: 1 }, "Willie Roaf": { hof: 1 },
+  "Randall McDaniel": { hof: 1 }, "Steve Hutchinson": { hof: 1 }, "Alan Faneca": { sb: 1, hof: 1 }, "Dermontti Dawson": { hof: 1 },
+  "Gary Zimmerman": { sb: 1, hof: 1 }, "Will Shields": { hof: 1 }, "Jason Kelce": { sb: 1 }, "Jeff Saturday": { sb: 1 },
+  "Lane Johnson": { sb: 2 }, "Mark Schlereth": { sb: 3 },
+
+  "Reggie White": { sb: 1, hof: 1, dpoy: 2 }, "Bruce Smith": { hof: 1, dpoy: 2 }, "Michael Strahan": { sb: 1, hof: 1, dpoy: 1 },
+  "J.J. Watt": { dpoy: 3 }, "Aaron Donald": { sb: 1, dpoy: 3 }, "Julius Peppers": { hof: 1 }, "Jason Taylor": { hof: 1, dpoy: 1 },
+  "Warren Sapp": { sb: 1, hof: 1, dpoy: 1 }, "John Randle": { hof: 1 }, "Cortez Kennedy": { hof: 1, dpoy: 1 },
+  "Richard Dent": { sb: 1, hof: 1 }, "Chris Doleman": { hof: 1 }, "Dwight Freeney": { sb: 1, hof: 1 }, "DeMarcus Ware": { sb: 1, hof: 1 },
+  "Von Miller": { sb: 2 }, "T.J. Watt": { dpoy: 1 }, "Myles Garrett": { dpoy: 1 }, "Nick Bosa": { dpoy: 1 }, "Khalil Mack": { dpoy: 1 },
+  "Simeon Rice": { sb: 1 }, "Jared Allen": { hof: 1 }, "Terrell Suggs": { sb: 2, dpoy: 1 }, "Haloti Ngata": { sb: 1 },
+  "Vince Wilfork": { sb: 2 }, "Chris Jones": { sb: 3 }, "Robert Mathis": { sb: 1 }, "Charles Haley": { sb: 5, hof: 1 },
+  "Ndamukong Suh": { sb: 1 },
+
+  "Lawrence Taylor": { mvp: 1, sb: 2, hof: 1, dpoy: 3 }, "Ray Lewis": { sb: 2, hof: 1, dpoy: 2 }, "Derrick Thomas": { hof: 1 },
+  "Junior Seau": { hof: 1 }, "Brian Urlacher": { hof: 1, dpoy: 1 }, "Derrick Brooks": { sb: 1, hof: 1, dpoy: 1 },
+  "Mike Singletary": { sb: 1, hof: 1, dpoy: 2 }, "Luke Kuechly": { dpoy: 1 }, "Patrick Willis": { hof: 1 }, "Zach Thomas": { hof: 1 },
+  "Kevin Greene": { hof: 1 }, "Bobby Wagner": { sb: 1 }, "Lavonte David": { sb: 1 }, "Rickey Jackson": { sb: 1, hof: 1 },
+  "Roquan Smith": {}, "Jonathan Vilma": { sb: 1 }, "Joey Porter": { sb: 1 }, "James Harrison": { sb: 2, dpoy: 1 },
+
+  "Deion Sanders": { sb: 2, hof: 1, dpoy: 1 }, "Rod Woodson": { sb: 1, hof: 1, dpoy: 1 }, "Darrell Green": { sb: 2, hof: 1 },
+  "Champ Bailey": { hof: 1 }, "Charles Woodson": { sb: 1, hof: 1, dpoy: 1 }, "Darrelle Revis": { sb: 1, hof: 1 },
+  "Ty Law": { sb: 3, hof: 1 }, "Aeneas Williams": { hof: 1 }, "Richard Sherman": { sb: 1 }, "Jalen Ramsey": { sb: 1 },
+  "Ronde Barber": { sb: 1, hof: 1 }, "Asante Samuel": { sb: 2 }, "Eric Allen": { hof: 1 }, "Stephon Gilmore": { sb: 1, dpoy: 1 },
+  "Darius Slay": { sb: 1 },
+  "Ed Reed": { sb: 1, hof: 1, dpoy: 1 }, "Troy Polamalu": { sb: 2, hof: 1, dpoy: 1 }, "Ronnie Lott": { sb: 4, hof: 1 },
+  "Brian Dawkins": { hof: 1 }, "Steve Atwater": { sb: 2, hof: 1 }, "John Lynch": { sb: 1, hof: 1 }, "Earl Thomas": { sb: 1 },
+  "Kam Chancellor": { sb: 1 }, "Tyrann Mathieu": { sb: 2 }, "Darren Woodson": { sb: 3 }, "LeRoy Butler": { sb: 1, hof: 1 },
+  "Darren Sharper": { sb: 1 }, "Bob Sanders": { sb: 1, dpoy: 1 },
+
+  "Justin Tucker": { sb: 1 }, "Adam Vinatieri": { sb: 4 }, "Morten Andersen": { hof: 1 }, "Jason Elam": { sb: 2 },
+  "Stephen Gostkowski": { sb: 3 }, "Harrison Butker": { sb: 3 },
+};
 
 const POS_NAMES = {
   QB: "Quarterback", RB: "Running Back", WR: "Wide Receiver", TE: "Tight End",
@@ -914,30 +979,52 @@ function buildPlayers() {
         line = [`${one(pct)}% FG`, `${fmt(per(fgm))} FGM`, `LONG ${long}`];
       }
 
-      // Accolades: Pro Bowls and 1st-team All-Pro per season played
-      acc = (p.pb + p.ap * 1.6) / seasons;
-      const accWeight = pos === "OL" ? 6 : 3;
-      p.raw = score + acc * accWeight + Math.min(seasons, 12) * 0.05;
+      // ---- three parts, each on a fixed 0-1 scale ----
+      // PEAK: how productive he was per season (stat score above)
+      // CAREER: how much he piled up over his whole career
+      // HONORS: Pro Bowls, All-Pros, MVPs, Player of the Year, rings, Hall of Fame
+      const H = HONORS[name] || {};
+      Object.assign(p, { mvp: H.mvp || 0, sb: H.sb || 0, hof: H.hof || 0, dpoy: H.dpoy || 0, opoy: H.opoy || 0 });
+      const c01 = (x) => Math.max(0, Math.min(1, x));
+      let career = 0;
+      if (pos === "QB") { const [, , , , , yds, td] = r; career = c01((yds * era) / 65000) * 0.6 + c01(r[6] / 450) * 0.4; }
+      else if (pos === "RB") { career = c01(r[5] / 14000) * 0.6 + c01(r[6] / 120) * 0.3 + c01(r[9] / 5000) * 0.1; }
+      else if (pos === "WR") { career = c01((r[6] * era) / 14500) * 0.6 + c01(r[7] / 120) * 0.3 + c01(r[5] / 1150) * 0.1; }
+      else if (pos === "TE") { career = c01((r[6] * era) / 12000) * 0.6 + c01(r[7] / 100) * 0.3 + c01(r[5] / 1000) * 0.1; }
+      else if (pos === "OL") { career = c01(g / 230); }
+      else if (pos === "DL") { career = c01(r[5] / 140) * 0.85 + c01(r[6] / 40) * 0.15; }
+      else if (pos === "LB") { career = Math.max(c01(r[5] / 1800), c01(r[6] / 125)) * 0.85 + c01(r[7] / 30) * 0.15; }
+      else if (pos === "CB") { career = c01(r[5] / 55) * 0.75 + c01(g / 230) * 0.25; }
+      else if (pos === "S") { career = c01(r[5] / 50) * 0.65 + c01(g / 220) * 0.35; }
+      else if (pos === "K") { career = c01(r[5] / 480) * 0.7 + c01(g / 300) * 0.3; }
+      // honors = half legacy (career total) + half dominance (per season)
+      const ringW = pos === "QB" ? 3.5 : pos === "K" ? 2 : 1.2;   // rings matter most for quarterbacks
+      const pts = p.pb * 1 + p.ap * 2.5 + p.mvp * 7 + p.dpoy * 5 + p.opoy * 3 + p.sb * ringW + p.hof * 7;
+      const rate = (p.pb * 1 + p.ap * 2.5 + p.mvp * 7 + p.dpoy * 5 + p.opoy * 3) / seasons;
+      p.honors = 0.5 * (1 - Math.exp(-pts / 22)) + 0.5 * (1 - Math.exp(-rate / 1.4));
+      p.career = career;
+      p.peakRaw = score;
       p.statLine = line;
       p.id = `${pos}-${name}`.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
       list.push(p);
     }
 
-    // Short careers get pulled a little toward the middle of the pack
-    const med = [...list].sort((a, b) => a.raw - b.raw)[Math.floor(list.length / 2)].raw;
+    // PEAK on a 0-1 scale: how far above or below the typical player at his
+    // position (in standard deviations). Short careers count a little less.
+    const mean = list.reduce((t, p) => t + p.peakRaw, 0) / list.length;
+    const sd = Math.sqrt(list.reduce((t, p) => t + (p.peakRaw - mean) ** 2, 0) / list.length) || 1;
     for (const p of list) {
-      const pull = (1 - Math.min(1, p.seasons / 5)) * 0.35;
-      p.raw = p.raw * (1 - pull) + med * pull;
+      let peak = 1 / (1 + Math.exp(-1.35 * (p.peakRaw - mean) / sd));
+      const trust = Math.min(1, p.seasons / 5);
+      peak = peak * trust + 0.45 * (1 - trust);
+      p.peak = peak;
+      // DBs and linemen have few stats that show greatness, so honors count more there
+      const raw = pos === "OL" ? 0.25 * p.career + 0.75 * p.honors
+        : pos === "CB" || pos === "S" ? 0.30 * peak + 0.18 * p.career + 0.52 * p.honors
+        : 0.42 * peak + 0.18 * p.career + 0.40 * p.honors;
+      // Fixed scale for every position: no forced 66 floor or 99 ceiling.
+      p.ovr = Math.max(62, Math.min(99, Math.round(58 + 46 * raw)));
     }
-
-    // Convert raw scores to 66–99 ratings within each position
-    const sorted = [...list].sort((a, b) => a.raw - b.raw);
-    const min = sorted[0].raw, max = sorted[sorted.length - 1].raw;
-    sorted.forEach((p, i) => {
-      const pct = sorted.length > 1 ? i / (sorted.length - 1) : 1;
-      const mm = (p.raw - min) / (max - min || 1);
-      p.ovr = Math.round(66 + 33 * (0.55 * mm + 0.45 * pct));
-    });
     all.push(...list);
   }
   return all;
@@ -2873,6 +2960,17 @@ if (typeof module !== "undefined")
   const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const h = (html) => html;
   function tierClass(ovr) { return ovr >= 95 ? "t-elite" : ovr >= 90 ? "t-gold" : ovr >= 80 ? "t-silver" : "t-bronze"; }
+  function honorsList(p, short) {
+    const a = [];
+    if (p.hof) a.push("Hall of Fame");
+    if (p.mvp) a.push(`${p.mvp}× MVP`);
+    if (p.dpoy) a.push(`${p.dpoy}× ${short ? "DPOY" : "Defensive Player of the Year"}`);
+    if (p.opoy) a.push(`${p.opoy}× ${short ? "OPOY" : "Offensive Player of the Year"}`);
+    if (p.sb) a.push(`${p.sb}× Super Bowl champ`);
+    if (p.ap) a.push(`${p.ap}× ${short ? "All-Pro" : "1st-team All-Pro"}`);
+    if (p.pb) a.push(`${p.pb}× Pro Bowl`);
+    return a;
+  }
   function tierName(ovr) { return ovr >= 95 ? "Elite" : ovr >= 90 ? "Gold" : ovr >= 80 ? "Silver" : "Bronze"; }
   // ---------------- salary cap ----------------
   // Salary ($ millions) grows steeply with rating; QBs cost more, kickers less.
@@ -3180,9 +3278,7 @@ if (typeof module !== "undefined")
     state.choices = picks.sort((a, b) => b.ovr - a.ovr);
   }
   function playerCard(p, i) {
-    const acc = [];
-    if (p.pb) acc.push(`${p.pb}× Pro Bowl`);
-    if (p.ap) acc.push(`${p.ap}× All-Pro`);
+    const acc = honorsList(p, true);
     const can = affordable(p);
     return `<button class="pcard ${tierClass(p.ovr)} ${can ? "" : "over"}" data-pick="${i}" style="--d:${i * 60}ms" ${can ? "" : 'aria-disabled="true"'}>
       <div class="pcard-top">
@@ -3741,9 +3837,7 @@ if (typeof module !== "undefined")
   function showPlayerInfo(id) {
     const p = PLAYERS.find((x) => x.id === id);
     if (!p) return;
-    const acc = [];
-    if (p.pb) acc.push(`${p.pb}× Pro Bowl`);
-    if (p.ap) acc.push(`${p.ap}× 1st-team All-Pro`);
+    const acc = honorsList(p, false);
     const seasons = (p.g / 16).toFixed(1);
     showOverlay(`<div class="modal pinfo">
       <div class="pinfo-top">
