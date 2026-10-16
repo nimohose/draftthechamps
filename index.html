@@ -695,6 +695,22 @@ main.wide { max-width: 1680px; }
 @media (max-width: 560px) { .cta-row.center .btn { white-space: nowrap; } }
 @media (max-width: 380px) { .cta-row.center .btn.big { font-size: 17px; padding: 12px 12px; } }
 
+/* ---------- 4 plays at a time, 2 × 2 grid (desktop and phones) ---------- */
+.callpanel .plays, .game-left .plays { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) {
+  .callpanel .plays, .game-left .plays { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .callpanel .play { display: flex; flex-direction: column; gap: 4px; padding: 8px; }
+  .callpanel .play-name { font-size: 17px; line-height: 1.05; min-height: 2.1em; display: flex; align-items: flex-end; }
+  .callpanel .play .diagram { width: 100%; grid-row: auto; }
+  .callpanel .play-desc { font-size: 11.5px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .callpanel .play .tags { font-size: 10.5px; line-height: 1.2; }
+}
+@media (max-width: 380px) {
+  .callpanel .play .diagram { width: 100%; }
+  .callpanel .play-name { font-size: 16px; }
+}
+@media (min-width: 561px) { .callpanel .play .diagram { max-height: 120px; } }
+
 </style>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
   <!-- Vercel Web Analytics (only works on the live site) -->
@@ -1269,8 +1285,8 @@ if (typeof module !== "undefined") module.exports = { PLAYERS, POS_NAMES };
 /* =====================================================================
    DRAFT THE CHAMPS — PLAYBOOK
    ---------------------------------------------------------------------
-   Every formation (play-call type) has 15 real football plays; the game
-   deals 3 of them at random each time, with a reroll. Each play is built to
+   Every formation (play-call type) has 12 real football plays; the game
+   deals 4 of them at random each time, with a reroll. Each play is built to
    beat certain defenses and struggles against others, the same way real
    concepts do (Smash beats Cover 2, Four Verticals stresses Cover 3,
    screens punish blitzes, etc.).
@@ -1664,6 +1680,25 @@ const DEFENSE_PLAYBOOK = [
   for (const [cat, id, name, tags, rush, run, c, desc, soft] of DEF) {
     DEFENSE_PLAYBOOK.find((x) => x.id === cat).plays.push({ id, name, tags, rush, run, comp: { short: c[0], mid: c[1], deep: c[2] }, desc, soft: soft || 0 });
   }
+})();
+
+// Trim every formation to 12 plays by dropping the closest look-alikes.
+(function trimTo12() {
+  const CUT = new Set([
+    "dart", "delay", "wham",                 // inside run
+    "stretch", "lead", "sbr",                // outside run
+    "hank", "tripsstick", "dslant",          // quick
+    "dblout", "swirl", "fadestop",           // sideline
+    "follow", "mread", "tecross",            // middle
+    "stopgo", "skinny", "tripsvert",         // deep
+    "rocket", "flare", "dblscreen",          // screen
+    "fieldblitz", "crossdog", "dimeblitz",   // blitz
+    "hole", "trail", "c1double",             // man
+    "c3hard", "seam3", "c4drop",             // zone
+    "deepmatch", "bend", "threedeep",        // prevent
+    "gapcontrol", "under", "stack",          // run stop
+  ]);
+  for (const c of [...OFFENSE_PLAYBOOK, ...DEFENSE_PLAYBOOK]) c.plays = c.plays.filter((p) => !CUT.has(p.id));
 })();
 
 const ALL_OFF_PLAYS = {};
@@ -2510,7 +2545,7 @@ if (typeof module !== "undefined")
   function resize() {
     const c = view.canvas;
     const sw = c.clientWidth || c.parentElement?.clientWidth || 480;
-    let sh = sw < 560 ? Math.max(280, Math.min(window.innerHeight * 0.45, 440)) : Math.min(Math.max(window.innerHeight - 170, 520), 920);
+    let sh = sw < 560 ? Math.min(window.innerHeight * 0.66, 640) : Math.min(Math.max(window.innerHeight - 170, 520), 920);
     let vw = sh * FW / sw;                 // yards of field length in view
     if (vw > 120) { vw = 120; sh = 120 * sw / FW; }
     sh = Math.round(sh);
@@ -3612,7 +3647,7 @@ if (typeof module !== "undefined")
 
       <section class="how">
         <div class="how-step"><b>1</b><h3>Draft 14 starters</h3><p>Each round you get five real players at one position. Stars cost more, and a ${"$"}185M salary cap keeps you from stacking a team of 99s.</p></div>
-        <div class="how-step"><b>2</b><h3>Call real plays</h3><p>Choose a play type, then one of three real plays — Smash, Four Verticals, Cover 2, Fire Zone and more. Every play beats some calls and loses to others.</p></div>
+        <div class="how-step"><b>2</b><h3>Call real plays</h3><p>Choose a play type, then one of four real plays — Smash, Four Verticals, Cover 2, Fire Zone and more. Every play beats some calls and loses to others.</p></div>
         <div class="how-step"><b>3</b><h3>Playoff run or season</h3><p>Playoff run: win four straight. Season: play 16 games — the top 7 records make the playoffs and the #1 seed gets a bye.</p></div>
       </section>
 
@@ -4167,12 +4202,12 @@ if (typeof module !== "undefined")
   }
 
   function dealPlays(cat, avoid) {
-    // 3 random plays from the formation's 15, different from the last deal when possible
-    for (let i = 0; i < 12; i++) {
-      const ids = shuffle(cat.plays).slice(0, 3).map((p) => p.id);
-      if (!avoid || ids.some((x) => !avoid.includes(x))) return ids;
+    // 4 random plays from the formation's 12; a reroll brings at least 3 new ones
+    for (let i = 0; i < 20; i++) {
+      const ids = shuffle(cat.plays).slice(0, 4).map((p) => p.id);
+      if (!avoid || ids.filter((x) => !avoid.includes(x)).length >= 3) return ids;
     }
-    return shuffle(cat.plays).slice(0, 3).map((p) => p.id);
+    return shuffle(cat.plays).slice(0, 4).map((p) => p.id);
   }
   function playCards(cat, side, ids) {
     const list = ids ? ids.map((id) => cat.plays.find((p) => p.id === id)).filter(Boolean) : cat.plays;
@@ -4410,14 +4445,14 @@ if (typeof module !== "undefined")
         <div class="cats ${youOff ? "" : "def"}">${book.map((c) => `<button class="cat" data-cat="${c.id}"><i>${c.icon}</i><span>${c.name}</span></button>`).join("")}</div>
         ${extras}`;
     }
-    // Step 2: three of the formation's 15 plays
+    // Step 2: four of the formation's 12 plays
     const ids = state.picks && state.picks.cat === cat.id ? state.picks.ids : (state.picks = { cat: cat.id, ids: dealPlays(cat) }).ids;
     return `<div class="play-head">
         <button class="sbtn back-btn" data-back>← Back</button>
         <div class="play-head-title"><i>${cat.icon}</i><h3>${esc(cat.name)}</h3></div>
         <button class="sbtn reroll-btn" data-reroll>🎲 Reroll plays</button>
       </div>
-      <p class="cat-blurb">${esc(cat.blurb)} <span class="muted">· 3 of ${cat.plays.length} plays</span></p>
+      <p class="cat-blurb">${esc(cat.blurb)} <span class="muted">· 4 of ${cat.plays.length} plays</span></p>
       ${playCards(cat, youOff ? "off" : "def", ids)}
       ${extras}`;
   }
