@@ -126,7 +126,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 20px 20px 60px; }
 .lede { max-width: 680px; margin: 0 auto; color: #c9d4e3; font-size: 18px; }
 .hero-helmets { display: flex; justify-content: center; gap: 14px; margin-top: 26px; flex-wrap: wrap; }
 .setup { max-width: 640px; margin: 10px auto 24px; display: flex; flex-direction: column; gap: 10px; }
-.setup h2 { font-family: var(--display); font-size: 32px; letter-spacing: 1px; }
+.setup h2 { font-family: var(--display); font-size: 32px; letter-spacing: 1px; text-align: center; }
 .field-label { font-family: var(--cond); font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; font-size: 13px; color: var(--muted); margin-top: 6px; }
 .text-in { font: inherit; font-size: 20px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line2); background: #0b1322; color: var(--text); }
 .text-in:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
@@ -532,6 +532,168 @@ main.wide { max-width: 1680px; }
 .br.bye { opacity: .75; }
 @media (max-width: 860px) { .season-grid { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .season-rec b { font-size: 42px; } .sched { grid-template-columns: 1fr; } }
+
+/* opponent line on the pregame / season screens (replaces the helmet matchup card) */
+.vs-line { text-align: center; font-family: var(--cond); font-weight: 600; font-size: 18px; color: #c9d4e3; margin-top: -6px; }
+.vs-line b { color: #fff; }
+.vs-line span { color: var(--muted); }
+
+/* =====================================================================
+   PHONE LAYOUT — most visitors are on mobile, so phones get a tighter,
+   single-column layout with the field and the play buttons on one screen.
+   ===================================================================== */
+.draft-mini { display: none; }
+@media (max-width: 820px) {
+  .draft-mini { display: flex; position: sticky; top: var(--topbar-h, 49px); z-index: 12; justify-content: space-between; gap: 10px;
+    margin: 0 -14px 10px; padding: 8px 14px; background: rgba(10, 15, 26, .96); border-bottom: 1px solid var(--line);
+    font-family: var(--cond); font-weight: 600; font-size: 15px; color: var(--muted); backdrop-filter: blur(8px); }
+  .draft-mini b { color: #fff; font-weight: 700; }
+  .draft-mini b.tight { color: var(--bad); }
+}
+@media (max-width: 560px) {
+  main { padding: 10px 14px 40px; }
+  .topbar { padding: 8px 14px; }
+  .brand-text { font-size: 20px; }
+
+  /* home */
+  .hero { padding: 14px 0 8px; }
+  .hero h1 { font-size: clamp(48px, 15vw, 64px); margin: 6px 0 4px; }
+  .eyebrow { font-size: 11px; }
+  .setup { padding: 16px; margin: 8px auto 18px; }
+  .setup h2 { font-size: 28px; }
+  .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .swatch { padding: 4px; display: flex; justify-content: center; }
+  .swatch .helmet-svg { width: 38px; height: 33px; }
+  .start-row .btn { flex: 1 1 100%; }
+  .how { gap: 8px; }
+  .how-step { padding: 12px 14px; display: grid; grid-template-columns: 30px 1fr; column-gap: 8px; }
+  .how-step b { font-size: 28px; grid-row: 1 / 3; }
+  .how-step h3 { margin: 0 0 2px; font-size: 18px; }
+  .how-step p { font-size: 14px; }
+  .card.resume { padding: 14px; }
+  .card.resume .btn { width: 100%; }
+
+  /* draft: compact player cards */
+  .draft-head { margin-bottom: 8px; }
+  .draft-head h2 { font-size: 34px; }
+  .draft-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; }
+  .draft-actions .btn { font-size: 15px; padding: 10px 8px; }
+  .legend { margin: 4px 0 8px; }
+  .choices { gap: 8px; }
+  .pcard { display: grid; grid-template-columns: 52px 1fr auto; column-gap: 10px; row-gap: 3px; padding: 10px 12px; align-items: center; }
+  .pcard-top { display: contents; }
+  .pcard-helmet { grid-column: 1; grid-row: 1 / 3; }
+  .pcard-helmet .helmet-svg { width: 52px; height: 45px; }
+  .pcard .tier-tag { grid-column: 3; grid-row: 1; align-self: start; }
+  .pcard-name { grid-column: 2; grid-row: 1; font-size: 23px; }
+  .pcard-meta { grid-column: 2 / 4; grid-row: 2; font-size: 12px; }
+  .pcard-stats-label { display: none; }
+  .pcard-stats, .pcard-acc, .pcard-sal { grid-column: 1 / 4; }
+  .pcard-stats span { font-size: 13px; }
+  .pcard-acc:empty, .pcard-acc { font-size: 12px; }
+  .pcard-sal { padding-top: 6px; }
+  .note { font-size: 12px; }
+
+  /* team review */
+  .team-banner { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 12px; padding: 14px; }
+  .team-banner > div:first-child { grid-column: 1; }
+  .team-title { font-size: 40px; }
+  .team-pay { grid-column: 1; grid-row: 2; flex-direction: row; align-items: baseline; gap: 6px; }
+  .team-pay b { font-size: 22px; }
+  .big-ovr { grid-column: 2; grid-row: 1 / 3; padding: 8px 12px; }
+  .big-ovr span { font-size: 44px; }
+  .big-ovr small { font-size: 10px; }
+  .lineup .helmet-svg { width: 50px; height: 43px; }
+  .cta-row { flex-direction: column-reverse; align-items: stretch; gap: 8px; }
+  .cta-row .btn { width: 100%; }
+  .cta-row.center { flex-direction: row; }
+  .cta-row.center .btn { width: auto; flex: 1; }
+  .cta-row.center .btn.ghost { flex: 0 0 auto; }
+  .btn.big { font-size: 19px; padding: 13px 18px; }
+
+  /* season + pregame */
+  .season-head { align-items: center; }
+  .season .team-title { font-size: 36px; }
+  .season-rec b { font-size: 40px; }
+  .vs-line { font-size: 17px; margin-top: 0; }
+  .scenario { padding: 14px; gap: 4px; }
+  .sc-score { font-size: 24px; gap: 4px 16px; }
+  .sc-line { font-size: 14px; }
+  .sc-goal { font-size: 16px; }
+  .pregame { gap: 10px; }
+  .bracket .br { padding: 5px 8px; font-size: 13px; }
+  .br-line { width: 10px; }
+  .standings { font-size: 14px; }
+  .standings td { padding: 4px 5px; }
+  .sched { grid-template-columns: 1fr 1fr; gap: 2px 8px; font-size: 13.5px; }
+  .sched .sr { font-size: 12.5px; }
+  .season-end { padding: 16px; }
+  .season-end h2 { font-size: 32px; }
+
+  /* game: slim scoreboard, field + play buttons on one screen */
+  .sb-sticky { padding: 4px 14px 6px; gap: 4px; margin: 0 -14px; }
+  .sb-team, .sb-team.opp { padding: 3px 8px; }
+  .sb-name { font-size: 14px; }
+  .sb-score { font-size: 26px; }
+  .sb-mid { padding: 2px 8px; }
+  .sb-round { font-size: 9.5px; letter-spacing: 1px; }
+  .sb-clock { font-size: 26px; letter-spacing: 1px; }
+  .sb-clockstate { font-size: 9.5px; }
+  .situation { font-size: 13.5px; gap: 8px; }
+  .situation .dd { font-size: 17px; padding: 0 8px; }
+  .game { gap: 6px; }
+  .game-main { gap: 8px; }
+  .field-tools { transform: scale(.85); transform-origin: top right; }
+  .field-hint { font-size: 11px; }
+  .callpanel { padding: 10px 12px; }
+  .panel-head h3 { font-size: 24px; }
+  .panel-head .hint { font-size: 13px; }
+  .callpanel .cats, .game-left .cats { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .callpanel .cats.def, .game-left .cats.def { grid-template-columns: repeat(3, 1fr); }
+  .cat { padding: 8px 2px; }
+  .cat i { font-size: 17px; }
+  .cat span { font-size: 11.5px; letter-spacing: .2px; }
+  .play-head { gap: 6px; }
+  .play-head-title h3 { font-size: 22px; }
+  .play-head .btn { font-size: 13px; padding: 7px 10px; }
+  .callpanel .plays, .game-left .plays { grid-template-columns: 1fr; gap: 6px; }
+  .play { display: grid; grid-template-columns: 1fr 112px; column-gap: 10px; row-gap: 3px; padding: 9px 10px; align-items: start; }
+  .play-name { grid-column: 1; font-size: 20px; }
+  .play .diagram { grid-column: 2; grid-row: 1 / 4; width: 112px; align-self: center; }
+  .play-desc { grid-column: 1; font-size: 12.5px; line-height: 1.3; }
+  .play .tags { grid-column: 1; font-size: 11.5px; }
+  .specials { margin-top: 8px; padding-top: 8px; gap: 6px; }
+  .seg { font-size: 13px; padding: 5px 9px; }
+  .sbtn { font-size: 13.5px; padding: 7px 9px; }
+  .lastplay { padding: 10px 12px; }
+  .log li { font-size: 13px; }
+
+  /* modals */
+  .modal { padding: 18px 16px; }
+  .modal h2 { font-size: 30px; }
+  .modal-actions { flex-direction: column-reverse; align-items: stretch; }
+  .modal-actions .btn { width: 100%; }
+}
+@media (max-width: 380px) {
+  .cat span { font-size: 10.5px; }
+  .play { grid-template-columns: 1fr 96px; }
+  .play .diagram { width: 96px; }
+  .sb-name { font-size: 13px; }
+}
+
+@media (max-width: 560px) {
+  .board { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .slot { grid-template-columns: 26px 32px 1fr; gap: 5px; padding: 3px 6px; min-height: 38px; }
+  .slot .helmet-svg { width: 32px; height: 28px; }
+  .slot-name { font-size: 13px; }
+  .slot-pos { font-size: 12px; }
+  .slot.now { grid-column: 1 / -1; }
+  .cat-blurb { margin: 6px 2px; font-size: 13px; }
+  .team-pay small { white-space: nowrap; font-size: 12px; }
+  .draft-actions .btn { white-space: nowrap; font-size: 14px; }
+}
+@media (max-width: 560px) { .cta-row.center .btn { white-space: nowrap; } }
+@media (max-width: 380px) { .cta-row.center .btn.big { font-size: 17px; padding: 12px 12px; } }
 
 </style>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
@@ -2348,7 +2510,7 @@ if (typeof module !== "undefined")
   function resize() {
     const c = view.canvas;
     const sw = c.clientWidth || c.parentElement?.clientWidth || 480;
-    let sh = sw < 560 ? Math.min(window.innerHeight * 0.66, 640) : Math.min(Math.max(window.innerHeight - 170, 520), 920);
+    let sh = sw < 560 ? Math.max(280, Math.min(window.innerHeight * 0.45, 440)) : Math.min(Math.max(window.innerHeight - 170, 520), 920);
     let vw = sh * FW / sw;                 // yards of field length in view
     if (vw > 120) { vw = 120; sh = 120 * sw / FW; }
     sh = Math.round(sh);
@@ -3281,7 +3443,7 @@ if (typeof module !== "undefined")
     return helmet(p.num, col, ovrNumColor(p.ovr), opts);
   }
   function ratingLegend() {
-    return `<div class="legend"><span>66</span><i></i><span>99</span><small>Helmet color = overall rating</small></div>`;
+    return `<div class="legend"><span>70</span><i></i><span>99</span><small>Helmet color = overall rating</small></div>`;
   }
   function helmetTag(p, opts = {}) {
     // Helmet with name below, for lineups/rosters
@@ -3415,6 +3577,7 @@ if (typeof module !== "undefined")
     $app.classList.toggle("wide", state.screen === "game");
     const fn = { home: renderHome, draft: renderDraft, team: renderTeam, pregame: renderPregame, game: renderGame, season: renderSeason }[state.screen];
     fn();
+    measureSticky();
   }
 
   // =================================================================
@@ -3427,7 +3590,6 @@ if (typeof module !== "undefined")
         <div class="hero-inner">
           <p class="eyebrow">Every era · 1985 to today · ${PLAYERS.length} legends</p>
           <h1>Draft the <span>Champs</span></h1>
-          <p class="lede">Draft a team of NFL greats, rated 70–99 against their own position from their real season averages. Then take over in random two-minute drills — lead the comeback on offense or protect the lead on defense. Go straight to a four-game playoff run, or play a 16-game season and earn your seed.</p>
         </div>
       </section>
 
@@ -3548,6 +3710,7 @@ if (typeof module !== "undefined")
           ${rosterBoard()}
         </aside>
         <section class="draft-main">
+          <div class="draft-mini"><span>Pick <b>${state.draftRound + 1}</b>/${SLOTS.length}</span><span>Cap left <b class="${CAP - payroll() < 15 ? "tight" : ""}">${money(CAP - payroll())}</b></span>${ovr ? `<span>Avg <b>${ovr}</b></span>` : ""}</div>
           <div class="draft-head">
             <div>
               <p class="eyebrow">Round ${state.draftRound + 1} of ${SLOTS.length}</p>
@@ -3560,7 +3723,7 @@ if (typeof module !== "undefined")
           </div>
           ${ratingLegend()}
           <div class="choices">${state.choices.map(playerCard).join("")}</div>
-          <p class="note">Ratings compare each player to every other player at his position, using career per-season averages plus Pro Bowl / All-Pro rate. Passing and receiving numbers are adjusted for era.</p>
+          <p class="note">Ratings (70–99) compare each player only to others at his position, using peak per-season stats, career totals and honors. Passing and receiving numbers are adjusted for era.</p>
         </section>
       </div>`;
     document.getElementById("randRest").onclick = randomizeRest;
@@ -3660,11 +3823,7 @@ if (typeof module !== "undefined")
       <section class="pregame">
         ${bracket()}
         <p class="eyebrow center">${r.name}${state.mode === "season" && state.season ? ` · #${state.season.seed} seed · ${state.season.you.w}–${state.season.you.l}` : ""}</p>
-        <div class="matchup card">
-          <div class="mteam">${helmet("", c.hex, c.num, { size: 84 })}<h3>${esc(t.name)}</h3><div class="ovr-badge ${tierClass(t.ovr)}"><span>${t.ovr}</span><small>OVR</small></div></div>
-          <div class="vs">VS</div>
-          <div class="mteam">${helmet("", opp.color, opp.numColor, { size: 84 })}<h3>${esc(opp.name)}</h3><div class="ovr-badge ${tierClass(opp.ovr)}"><span>${opp.ovr}</span><small>OVR</small></div></div>
-        </div>
+        <p class="vs-line">vs <b>${esc(opp.name)}</b></p>
         <div class="scenario card ${sc.youOffense ? "off" : "def"}">
           <div class="sc-tag">${sc.youOffense ? "COMEBACK DRIVE" : "PROTECT THE LEAD"}</div>
           <div class="sc-score"><span>${esc(t.name)} <b>${sc.youScore}</b></span><span>${esc(opp.nick)} <b>${sc.oppScore}</b></span></div>
@@ -3831,12 +3990,8 @@ if (typeof module !== "undefined")
       const opp = seasonOpp();
       const rematch = S.schedule.slice(0, S.week).some((g) => g.opp === S.schedule[S.week].opp);
       main = `
-        <p class="eyebrow center">Week ${S.week + 1} of ${SEASON_GAMES}${rematch ? " · Rematch" : ""}</p>
-        <div class="matchup card">
-          <div class="mteam">${helmet("", c.hex, c.num, { size: 84 })}<h3>${esc(t.name)}</h3><div class="ovr-badge ${tierClass(t.ovr)}"><span>${t.ovr}</span><small>OVR</small></div><div class="mrec">${rec}</div></div>
-          <div class="vs">VS</div>
-          <div class="mteam">${helmet("", opp.color, opp.numColor, { size: 84 })}<h3>${esc(opp.name)}</h3><div class="ovr-badge ${tierClass(opp.ovr)}"><span>${opp.ovr}</span><small>OVR</small></div><div class="mrec">${opp.w}–${opp.l}</div></div>
-        </div>
+        ${rematch ? `<p class="eyebrow center">Rematch</p>` : ""}
+        <p class="vs-line">vs <b>${esc(opp.name)}</b> <span>(${opp.w}–${opp.l})</span></p>
         ${scenarioCard(S.scenario, opp.nick)}
         <div class="cta-row center">
           <button class="btn ghost" id="simGame" title="Skip this one and simulate the result">Sim game</button>
@@ -3949,7 +4104,7 @@ if (typeof module !== "undefined")
     root.setProperty("--topbar-h", (bar ? Math.round(bar.getBoundingClientRect().height) : 52) + "px");
     root.setProperty("--sb-h", (sb ? Math.round(sb.getBoundingClientRect().height) : 0) + "px");
   }
-  window.addEventListener("resize", () => { if (state.screen === "game") measureSticky(); });
+  window.addEventListener("resize", measureSticky);
 
   function renderGame() {
     const g = state.game;
