@@ -494,6 +494,45 @@ main.wide { max-width: 1680px; }
   .sb-sticky .possn { display: none; }
 }
 
+/* ---------- season mode ---------- */
+.season { display: flex; flex-direction: column; gap: 14px; }
+.season-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.season-rec { display: flex; flex-direction: column; align-items: flex-end; }
+.season-rec b { font-family: var(--display); font-size: 56px; line-height: 1; color: var(--gold2); letter-spacing: 2px; font-weight: 400; }
+.season-rec small { font-family: var(--cond); color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.lastmsg { font-family: var(--cond); font-weight: 600; color: #c9d4e3; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
+.season-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); gap: 14px; align-items: start; }
+.season-main { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.season-side { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.season-side .card { padding: 14px; }
+.mrec { font-family: var(--cond); font-weight: 700; color: var(--muted); letter-spacing: 1px; }
+.standings { width: 100%; border-collapse: collapse; font-family: var(--cond); font-size: 15px; }
+.standings th { text-align: left; color: var(--muted); font-weight: 600; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 4px 6px; }
+.standings td { padding: 5px 6px; border-top: 1px solid var(--line); }
+.standings td.tn { font-weight: 700; }
+.standings td em { font-style: normal; font-size: 11px; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; }
+.standings tr.you td { background: rgba(245, 179, 1, .12); color: #fff; }
+.standings tr.cut td { border-bottom: 2px dashed var(--gold); }
+.fine { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+.sched { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-family: var(--cond); font-size: 14.5px; }
+.sched li { display: flex; align-items: center; gap: 6px; padding: 3px 4px; border-radius: 6px; min-width: 0; }
+.sched li.now { background: rgba(245, 179, 1, .14); }
+.sched .wk { width: 18px; color: var(--muted); text-align: right; }
+.sched .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; border: 1px solid rgba(255,255,255,.3); }
+.sched .sn { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.sched .sr { color: var(--muted); white-space: nowrap; }
+.sched li.w .sr { color: var(--good); }
+.sched li.l .sr { color: var(--bad); }
+.season-end { text-align: center; display: flex; flex-direction: column; gap: 10px; align-items: center; padding: 22px; }
+.season-end h2 { font-family: var(--display); font-size: 40px; letter-spacing: 1px; font-weight: 400; }
+.season-end.win { border-color: rgba(52, 210, 123, .5); }
+.season-end.loss { border-color: rgba(255, 90, 95, .45); }
+.card.resume { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; border-color: rgba(245, 179, 1, .5); max-width: 640px; margin: 0 auto 16px; }
+.card.resume h3 { font-family: var(--display); font-size: 28px; letter-spacing: 1px; font-weight: 400; }
+.br.bye { opacity: .75; }
+@media (max-width: 860px) { .season-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .season-rec b { font-size: 42px; } .sched { grid-template-columns: 1fr; } }
+
 </style>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏈</text></svg>">
   <!-- Vercel Web Analytics (only works on the live site) -->
@@ -2255,6 +2294,27 @@ if (typeof module !== "undefined")
   const GENERIC_NUM = { LT: 71, LG: 64, C: 60, RG: 66, RT: 77, TE: 85, QB: 9, RB: 28, WR1: 11, WR2: 17, WR3: 83,
     DE1: 91, DT1: 97, DT2: 95, DE2: 99, LB1: 54, MLB: 52, LB2: 56, CB1: 24, CB2: 21, SS: 31, FS: 33, K: 3, P: 8 };
 
+  // ---------- how each play looks on the field ----------
+  // Runs: pitch plays, counter steps, draw timing and QB keepers.
+  const PITCH = new Set(["toss", "crack", "speedopt", "triple", "sbr"]);
+  const COUNTER_STEP = new Set(["counter", "splitzone", "statue"]);
+  const DRAW_TIMING = new Set(["draw", "delay", "statue"]);
+  const QB_RUN = { sneak: "sneak", qbpower: "inside", bash: "inside", bootkeep: "boot", zoneread: null };
+  // Passes: where the ball is caught.
+  const CATCH_ZONE = {
+    slant: "in", stick: "curl", hitch: "curl", spacing: "curl", snag: "curl", dslant: "in", curls: "curl", yoption: "curl",
+    bsfade: "fade", quickout: "out", glance: "post", texas: "in", hank: "curl", whip: "out", tripsstick: "curl",
+    smash: "corner", outs: "out", comeback: "out", flood: "out", cornerflat: "corner", outup: "fade", wheel: "fade",
+    dblout: "out", fadestop: "out", china: "out", boot: "out", deepout: "out", zout: "out", swirl: "out", tecorner: "corner",
+    dagger: "in", mesh: "cross", levels: "in", drive: "in", shallow: "cross", dig: "in", seam: "seam", follow: "cross",
+    drift: "in", hilo: "cross", choice: "in", bow: "post", over: "cross", mread: "seam", tecross: "cross",
+    verts: "go", mills: "post", yankee: "cross", postcorner: "corner", sluggo: "go", flea: "cross", padeep: "cross",
+    streak: "go", scissors: "post", doublepost: "post", stopgo: "go", skinny: "post", bang8: "post", tripsvert: "seam", wheelpost: "fade",
+    rbscreen: "scr-rb", bubble: "scr-wr", tunnel: "scr-in", slip: "scr-te", midscreen: "scr-mid", swing: "scr-rb", jailbreak: "scr-in",
+    shovel: "scr-mid", smoke: "scr-wr", throwback: "scr-back", rocket: "scr-wr", tescreen: "scr-te", flare: "scr-rb", rpobubble: "scr-wr", dblscreen: "scr-in",
+  };
+  const PA_PLAYS = new Set(["yankee", "drift", "flea", "padeep", "boot", "bang8", "glance", "rpobubble"]);
+
   // ---------- view ----------
   const view = {
     canvas: null, ctx: null, w: 0, h: 0, dpr: 1, hits: [], onPick: null, skip: false,
@@ -2684,20 +2744,21 @@ if (typeof module !== "undefined")
     // ================= RUN =================
     if (kind === "run") {
       const cat = offPlay ? offPlay.cat : "inside";
-      const id = offPlay ? offPlay.anim || offPlay.id : "iz";
-      const carrier = offPlay && offPlay.carrier === "QB" ? "oQB" : offPlay && offPlay.carrier === "WR2" ? "oWR2" : "oRB";
+      const id = offPlay ? offPlay.id : "iz";
+      const qbRun = offPlay && offPlay.carrier === "QB" ? (QB_RUN[id] || "inside") : null;
+      const carrier = qbRun ? "oQB" : offPlay && (offPlay.carrier === "WR2" || offPlay.carrier === "WR1") ? "oWR2" : "oRB";
       const side = carrier === "oWR2" ? -1 : rand() < 0.5 ? -1 : 1;
       const dEnd = endLocal(last.yards);
       const outside = cat === "outside";
       let yEnd = outside ? side * rr(8, 15) : side * rr(0.5, 4);
       if (last.oob && !td) yEnd = side * (MID + 1.2);
       const rb = actors.oRB, qb = actors.oQB;
-      const tMesh = id === "draw" ? 0.26 : 0.16;
+      const tMesh = DRAW_TIMING.has(id) ? 0.26 : 0.16;
       const tEnd = 0.84;
       qb.path = [[0, -4.5, 0], [tMesh, -4.8, side * 0.4], [0.55, -6.5, -side * 1.5], [1, -6.8, -side * 1.6]];
       const pts = [[0, -7.8, 0]];
-      if (id === "counter") pts.push([0.1, -6.6, -side * 1.6]);
-      if (id === "toss") pts.push([0.22, -5.5, side * 4]);
+      if (COUNTER_STEP.has(id)) pts.push([0.1, -6.6, -side * 1.6]);
+      if (PITCH.has(id)) pts.push([0.22, -5.5, side * 4]);
       else pts.push([tMesh, -4.9, side * 0.5]);
       if (outside) pts.push([0.42, -1.5, side * 7]);
       else pts.push([0.38, 0.6, side * 1.4]);
@@ -2705,11 +2766,19 @@ if (typeof module !== "undefined")
       pts.push([tEnd, dEnd, yEnd]);
       pts.push([1, dEnd + (td || last.oob ? 1.5 : 0.4), yEnd + (last.oob ? side * 1 : 0)]);
       rb.path = pts;
-      if (carrier === "oQB") {
+      if (qbRun === "sneak") {
         // QB sneak: QB under center follows the center; the back stays home
         qb.start = [-1.2, 0];
         qb.path = [[0, -1.2, 0], [0.3, 0.2, 0.3], [tEnd, dEnd, rr(-0.8, 0.8)], [1, dEnd + 0.3, 0]];
         rb.path = [[0, -7, 0], [0.3, -5.5, 1.5]];
+      } else if (qbRun === "inside") {
+        // QB power / bash: the back leads (or fakes wide) and the QB keeps it inside
+        qb.path = [[0, -4.5, 0], [tMesh, -4.8, side * 0.4], [0.38, 0.6, side * 1.4], [tEnd, dEnd, yEnd], [1, dEnd + (td ? 1.5 : 0.4), yEnd]];
+        rb.path = id === "bash" ? [[0, -7.8, 0], [tMesh, -5, -side * 1], [0.5, -2, -side * 9], [1, 1, -side * 12]] : [[0, -7.8, 0], [tMesh, -5, side * 0.6], [0.36, 0.4, side * 1.2], [1, 2.5, side * 1.6]];
+      } else if (qbRun === "boot") {
+        // Bootleg keeper: fake the handoff one way, QB runs the other way
+        qb.path = [[0, -4.5, 0], [tMesh, -4.8, -side * 0.4], [0.42, -2.5, side * 7], [tEnd, dEnd, yEnd], [1, dEnd + (td || last.oob ? 1.5 : 0.4), yEnd + (last.oob ? side : 0)]];
+        rb.path = [[0, -7.8, 0], [tMesh, -4.9, -side * 0.6], [0.5, -0.5, -side * 5], [1, 1, -side * 7]];
       } else if (carrier === "oWR2") {
         // Jet sweep: slot receiver in motion takes it around the far edge
         const w = actors.oWR2;
@@ -2747,7 +2816,8 @@ if (typeof module !== "undefined")
 
     // ================= PASS (complete / incomplete / int / sack) =================
     else if (["complete", "incomplete", "int", "sack"].includes(kind)) {
-      const id = offPlay ? offPlay.anim || offPlay.id : last.hail ? "hail" : "verts";
+      const id = offPlay ? offPlay.id : last.hail ? "hail" : "verts";
+      const zone = CATCH_ZONE[id] || CATCH_ZONE[offPlay && offPlay.anim] || (last.hail ? "go" : "in");
       const cat = offPlay ? offPlay.cat : "deep";
       const depth = offPlay ? offPlay.depth || "short" : "deep";
       const screen = cat === "screen";
@@ -2765,22 +2835,35 @@ if (typeof module !== "undefined")
       if (hail) air = Math.min(toGoal + 2, 58);
       air = clamp(air, -4, toGoal + 4);
       let cy;
-      const sidelineIds = ["outs", "comeback", "smash", "hitch"];
-      if (screen) { air = id === "rbscreen" ? -2.5 : rr(-1, 1); cy = id === "rbscreen" ? sgn(rand() - 0.5) * 7 : sy + sgn(sy) * 2; }
+      const sd = sgn(sy) || (rand() < 0.5 ? -1 : 1);
+      if (screen || zone.startsWith("scr")) {
+        if (zone === "scr-rb") { air = -2.5; cy = sd * 8; }
+        else if (zone === "scr-back") { air = -2.5; cy = -sd * 10; }
+        else if (zone === "scr-mid") { air = -1; cy = rr(-1.5, 1.5); }
+        else if (zone === "scr-te") { air = -1.5; cy = sd * 10; }
+        else if (zone === "scr-in") { air = rr(-1, 1); cy = sy * 0.72; }
+        else { air = rr(-1, 1); cy = sy + sd * 2; }
+      }
       else if (hail) cy = rr(-6, 6);
-      else if (sidelineIds.includes(id) || cat === "sideline") cy = sgn(sy) * clamp(Math.abs(sy) + 2, 14, 23.5);
-      else if (id === "yankee") cy = -sgn(sy || 1) * rr(5, 10);
-      else if (id === "verts") cy = sy * 0.85;
-      else if (id === "mills" || id === "dagger" || id === "levels" || id === "slant" || id === "mesh") cy = sgn(sy || 1) * rr(2, 8);
-      else cy = sy * 0.6 + rr(-3, 3);
+      else if (zone === "out") cy = sd * clamp(Math.abs(sy) + 2, 14, 23.5);
+      else if (zone === "corner" || zone === "fade") cy = sd * clamp(Math.abs(sy) + 3, 16, 23.5);
+      else if (zone === "curl") cy = tgtSpot === "RB" ? sd * 6 : sy * 0.92;
+      else if (zone === "go") cy = tgtSpot === "RB" ? sd * 16 : sy * 0.88;
+      else if (zone === "seam") cy = sd * rr(4, 9);
+      else if (zone === "post") cy = sd * rr(0, 6);
+      else if (zone === "cross") cy = -sd * rr(3, 11);
+      else cy = sd * rr(2, 8); // "in"
       if (tgtSpot === "TE" && !screen) cy = clamp(cy, -14, 14);
       const catchPt = [air, cy];
       const qbSpot = [dropD, 0];
       const flight = clamp(0.05 + dist(qbSpot, catchPt) * 0.0065, 0.07, 0.32);
       const tCatch = tThrow + flight;
 
-      // QB dropback
+      // QB dropback (play-action plays fake the handoff first; boots roll out)
       qb.path = [[0, -4.5, 0], [0.2, dropD, 0], [tThrow, dropD + 0.4, 0]];
+      if (PA_PLAYS.has(id)) {
+        qb.path = [[0, -4.5, 0], [0.12, -5.2, 0.6], [0.24, dropD, id === "boot" ? sd * 5 : 0], [tThrow, dropD + 0.4, id === "boot" ? sd * 8 : 0]];
+      }
       // OL pass pro, DL rush
       for (const k of ["LT", "LG", "C", "RG", "RT"]) { const a = actors["o" + k], s = a.start; a.path = [[0, ...s], [0.25, s[0] - 1.8, s[1] * 1.15], [1, s[0] - 2.4, s[1] * 1.2]]; }
       for (const k of ["DE1", "DT1", "DT2", "DE2"]) { const a = actors["d" + k], s = a.start; a.path = [[0, ...s], [0.3, -2.2, s[1] * 0.9], [1, -3, s[1] * 0.75]]; }
@@ -2796,9 +2879,12 @@ if (typeof module !== "undefined")
         else if (k === "TE") route(k, [[0.35, 5, s[1] + 1], [1, 6.5, s[1] + 4]]);
         else route(k, [[0.35, Math.min(9, toGoal), s[1] * 0.95], [0.6, Math.min(11, toGoal + 1), s[1] * 0.8], [1, Math.min(11, toGoal + 1), s[1] * 0.75]]);
       }
-      if (tgtSpot !== "RB") route("RB", [[0.25, -5.5, 2.2], [1, -5.8, 2.4]]); // pass protection
+      if (tgtSpot !== "RB") route("RB", PA_PLAYS.has(id) ? [[0.12, -5.2, 0.9], [0.35, -1.5, 2.5], [1, -0.5, 3]] : [[0.25, -5.5, 2.2], [1, -5.8, 2.4]]); // fake or pass protection
       // target route
-      const brk = screen ? [tgt.start[0] - 0.5, tgt.start[1] + (tgtSpot === "RB" ? 2 : -sgn(sy) * 1)] : [Math.max(1, Math.min(air - 3, air * 0.65)), lerp(sy, cy, 0.25)];
+      const brk = screen || zone.startsWith("scr") ? [tgt.start[0] - 0.5, tgt.start[1] + (tgtSpot === "RB" ? 2 * sgn(cy || 1) : -sgn(sy) * 1)]
+        : zone === "cross" ? [Math.max(1, air * 0.4), lerp(sy, cy, 0.3)]
+        : zone === "go" || zone === "fade" ? [Math.max(1, air * 0.6), lerp(sy, cy, 0.5)]
+        : [Math.max(1, air * 0.8), lerp(sy, cy, 0.08)];
       tgt.path = [[0, ...tgt.start], [Math.min(tThrow, 0.3), ...brk], [tCatch, ...catchPt]];
 
       // coverage: corners mirror their receivers, safeties drift deep, LBs drop
@@ -3029,7 +3115,7 @@ if (typeof module !== "undefined")
 
   function skip() { if (view.anim) view.skip = true; }
   function onPick(fn) { view.onPick = fn; }
-  window.FIELD = { ensureCanvas, show, play, drawIdle, skip, onPick, isAnimating: () => !!view.anim };
+  window.FIELD = { ensureCanvas, show, play, drawIdle, skip, onPick, isAnimating: () => !!view.anim, _build: build };
 })();
 
 </script>
@@ -3305,10 +3391,18 @@ if (typeof module !== "undefined")
   });
   function confirmLeave() {
     showOverlay(`<div class="modal">
-      <h2>Leave this game?</h2><p>The current game will be lost.</p>
+      <h2>Leave this game?</h2><p>${state.mode === "season" && state.season && state.season.phase === "regular" ? "It will count as a loss for this week." : state.mode === "season" ? "You'll be eliminated from the playoffs." : "The current game will be lost."}</p>
       <div class="modal-actions"><button class="btn ghost" data-close>Keep playing</button><button class="btn" id="leaveYes">Leave</button></div>
     </div>`);
-    document.getElementById("leaveYes").onclick = () => { hideOverlay(); state.game = null; go("home"); };
+    document.getElementById("leaveYes").onclick = () => {
+      hideOverlay();
+      const g = state.game;
+      if (state.mode === "season" && state.season && g) {
+        if (state.season.phase === "regular") finishWeek(g.you.score, Math.max(g.opp.score, g.you.score + 1));
+        else clearSeason();
+      }
+      state.game = null; go("home");
+    };
     return false;
   }
   function showOverlay(html) { $overlay.innerHTML = html; $overlay.hidden = false; $overlay.querySelectorAll("[data-close]").forEach((b) => (b.onclick = hideOverlay)); }
@@ -3319,7 +3413,7 @@ if (typeof module !== "undefined")
       ? `<span class="pill">🏆 ${store.titles} title${store.titles === 1 ? "" : "s"}</span><span class="pill">${store.wins}–${store.losses}</span>`
       : "";
     $app.classList.toggle("wide", state.screen === "game");
-    const fn = { home: renderHome, draft: renderDraft, team: renderTeam, pregame: renderPregame, game: renderGame }[state.screen];
+    const fn = { home: renderHome, draft: renderDraft, team: renderTeam, pregame: renderPregame, game: renderGame, season: renderSeason }[state.screen];
     fn();
   }
 
@@ -3333,10 +3427,14 @@ if (typeof module !== "undefined")
         <div class="hero-inner">
           <p class="eyebrow">Every era · 1985 to today · ${PLAYERS.length} legends</p>
           <h1>Draft the <span>Champs</span></h1>
-          <p class="lede">Draft a team of NFL greats, rated 70–99 against their own position from their real season averages. Then take over in random two-minute drills — lead the comeback on offense or protect the lead on defense — and win four straight to lift the trophy.</p>
+          <p class="lede">Draft a team of NFL greats, rated 70–99 against their own position from their real season averages. Then take over in random two-minute drills — lead the comeback on offense or protect the lead on defense. Go straight to a four-game playoff run, or play a 16-game season and earn your seed.</p>
         </div>
       </section>
 
+      ${(() => { const sv = loadSeasonSave(); if (!sv || !sv.season) return "";
+        const S = sv.season; const where = S.phase === "regular" ? `Week ${S.week + 1} of ${SEASON_GAMES}` : S.phase === "playoffs" && sv.run ? ROUNDS[sv.run.round].name : S.phase === "clinched" ? "Playoffs next" : "Season complete";
+        return `<section class="card resume"><div><p class="eyebrow">Season in progress</p><h3>${esc(sv.teamName)} · ${S.you.w}–${S.you.l}</h3><p class="fine">${where}</p></div>
+          <button class="btn big" id="resumeSeason">Continue season →</button></section>`; })()}
       <section class="card setup">
         <h2>Build your franchise</h2>
         <label class="field-label" for="teamName">Team name</label>
@@ -3353,12 +3451,14 @@ if (typeof module !== "undefined")
       <section class="how">
         <div class="how-step"><b>1</b><h3>Draft 14 starters</h3><p>Each round you get five real players at one position. Stars cost more, and a ${"$"}185M salary cap keeps you from stacking a team of 99s.</p></div>
         <div class="how-step"><b>2</b><h3>Call real plays</h3><p>Choose a play type, then one of three real plays — Smash, Four Verticals, Cover 2, Fire Zone and more. Every play beats some calls and loses to others.</p></div>
-        <div class="how-step"><b>3</b><h3>Win four straight</h3><p>Wild Card → Divisional → Conference → Super Bowl. Lose once and the run is over.</p></div>
+        <div class="how-step"><b>3</b><h3>Playoff run or season</h3><p>Playoff run: win four straight. Season: play 16 games — the top 7 records make the playoffs and the #1 seed gets a bye.</p></div>
       </section>
 
       ${store.hof.length ? `<section class="card hof"><h2>🏆 Hall of Champions</h2>
         <ol>${store.hof.slice(0, 8).map((t) => `<li><span class="hof-name">${esc(t.name)}</span><span class="hof-meta">OVR ${t.ovr} · ${esc(t.qb)} · ${esc(t.date)}</span></li>`).join("")}</ol></section>` : ""}
     `;
+    const rs = document.getElementById("resumeSeason");
+    if (rs) rs.onclick = resumeSeason;
     $app.querySelectorAll("[data-color]").forEach((b) => (b.onclick = () => {
       state.color = b.dataset.color; store.color = state.color; saveStore(store);
       state.teamName = document.getElementById("teamName").value; renderHome();
@@ -3480,6 +3580,7 @@ if (typeof module !== "undefined")
     const { units, names } = teamUnits(state.roster);
     state.team = { name: state.teamName, nick: state.teamName, units, names, ovr: unitsOvr(units) };
     state.run = null;
+    state.mode = null;
     go("team");
   }
 
@@ -3512,12 +3613,14 @@ if (typeof module !== "undefined")
         <div class="cta-row">
           <button class="btn ghost" id="redraft">Redraft</button>
           <button class="btn ghost" id="rerandom">🎲 New random team</button>
-          <button class="btn big" id="startRun">Start championship run →</button>
+          <button class="btn big ghost" id="startRun" title="Four straight playoff games">Playoff run →</button>
+          <button class="btn big" id="startSeason" title="16 games, then the playoffs if your record is good enough">Play a season →</button>
         </div>
       </section>`;
     document.getElementById("redraft").onclick = () => startDraft();
     document.getElementById("rerandom").onclick = () => startDraft(true);
     document.getElementById("startRun").onclick = startRun;
+    document.getElementById("startSeason").onclick = startSeason;
   }
 
   // =================================================================
@@ -3525,21 +3628,24 @@ if (typeof module !== "undefined")
   // =================================================================
   function startRun() {
     state.run = { round: 0, results: [], used: [] };
+    state.mode = "run";
     store.runs++; saveStore(store);
     setupRound();
   }
   function setupRound() {
     const r = ROUNDS[state.run.round];
-    const opp = makeOpponent(r.ovr + Math.round((rand() - 0.5) * 4), state.run.used);
+    const opp = state.mode === "season" ? seasonPlayoffOpp(state.run.round) : makeOpponent(r.ovr + Math.round((rand() - 0.5) * 4), state.run.used);
     state.run.used.push(opp.nick);
     state.run.opp = opp;
     state.run.scenario = E.makeScenario();
+    if (state.mode === "season") saveSeason();
     go("pregame");
   }
   function bracket() {
     return `<div class="bracket">${ROUNDS.map((r, i) => {
       const res = state.run.results[i];
       const cls = res === true ? "won" : res === false ? "lost" : i === state.run.round ? "now" : "";
+      if (res === "bye") return `<div class="br won bye"><span>${r.short}</span>BYE</div>`;
       return `<div class="br ${cls}"><span>${r.short}</span>${res === true ? "✓" : res === false ? "✗" : ""}</div>`;
     }).join('<div class="br-line"></div>')}</div>`;
   }
@@ -3553,7 +3659,7 @@ if (typeof module !== "undefined")
     $app.innerHTML = `
       <section class="pregame">
         ${bracket()}
-        <p class="eyebrow center">${r.name}</p>
+        <p class="eyebrow center">${r.name}${state.mode === "season" && state.season ? ` · #${state.season.seed} seed · ${state.season.you.w}–${state.season.you.l}` : ""}</p>
         <div class="matchup card">
           <div class="mteam">${helmet("", c.hex, c.num, { size: 84 })}<h3>${esc(t.name)}</h3><div class="ovr-badge ${tierClass(t.ovr)}"><span>${t.ovr}</span><small>OVR</small></div></div>
           <div class="vs">VS</div>
@@ -3568,14 +3674,219 @@ if (typeof module !== "undefined")
         </div>
         <div class="cta-row center"><button class="btn big" id="kickoff">Take the field →</button></div>
       </section>`;
-    document.getElementById("kickoff").onclick = () => {
-      const opp = state.run.opp;
-      state.game = E.newGame({ you: { ...state.team }, opp: { ...opp }, scenario: state.run.scenario });
-      state.offCat = null; state.defCat = null;
-      E.cpuTurn; // engine ready
-      go("game");
-      maybeCpu();
+    document.getElementById("kickoff").onclick = () => kickoffWith(state.run.opp, state.run.scenario);
+  }
+
+  // =================================================================
+  // SEASON MODE — 16 games in a 16-team conference, then the playoffs
+  // =================================================================
+  const SEASON_GAMES = 16;
+  const SEASON_KEY = "dtc-season-v1";
+  const PLAYOFF_SEEDS = 7;
+
+  function startSeason() {
+    const used = [];
+    const teams = [];
+    for (let i = 0; i < 15; i++) {
+      const t = makeOpponent(76 + Math.round(rand() * 12), used); // conference rivals rated ~76–88
+      used.push(t.nick);
+      teams.push({ ...t, w: 0, l: 0, pf: 0, pa: 0 });
+    }
+    // Everyone once, plus one rematch later in the year
+    const order = shuffle(teams.map((_, i) => i));
+    const rival = order[Math.floor(rand() * 6)];
+    order.splice(9 + Math.floor(rand() * 7), 0, rival);
+    state.season = {
+      week: 0, phase: "regular", seed: null, lastMsg: "",
+      schedule: order.map((i) => ({ opp: i, result: null })),
+      teams, you: { w: 0, l: 0, pf: 0, pa: 0 },
     };
+    state.mode = "season";
+    state.run = null;
+    store.runs++; saveStore(store);
+    prepWeek();
+    saveSeason();
+    go("season");
+  }
+  function prepWeek() { state.season.scenario = E.makeScenario(); }
+  function seasonOpp() { const S = state.season; return S.teams[S.schedule[S.week].opp]; }
+
+  // Simulated final score of a full game (used for CPU games and "Sim game")
+  function simScore(winnerOvr, loserOvr) {
+    const w = 17 + Math.floor(rand() * 18) + Math.max(0, Math.round((winnerOvr - loserOvr) / 3));
+    const l = Math.max(0, w - 1 - Math.floor(rand() * 17));
+    return [w, l];
+  }
+  function winProb(a, b) { return clamp(0.5 + (a - b) * 0.035, 0.15, 0.85); }
+
+  // Record your game for this week, play the rest of the league's games, advance.
+  function finishWeek(youScore, oppScore) {
+    const S = state.season;
+    const slot = S.schedule[S.week];
+    const opp = S.teams[slot.opp];
+    const win = youScore > oppScore;
+    slot.result = { win, you: youScore, opp: oppScore };
+    S.you.pf += youScore; S.you.pa += oppScore; opp.pf += oppScore; opp.pa += youScore;
+    if (win) { S.you.w++; opp.l++; } else { S.you.l++; opp.w++; }
+    // the other 14 teams pair off
+    const rest = shuffle(S.teams.map((_, i) => i).filter((i) => i !== slot.opp));
+    for (let i = 0; i + 1 < rest.length; i += 2) {
+      const a = S.teams[rest[i]], b = S.teams[rest[i + 1]];
+      const aWins = rand() < winProb(a.ovr, b.ovr);
+      const [ws, ls] = simScore(aWins ? a.ovr : b.ovr, aWins ? b.ovr : a.ovr);
+      const W = aWins ? a : b, L = aWins ? b : a;
+      W.w++; L.l++; W.pf += ws; W.pa += ls; L.pf += ls; L.pa += ws;
+    }
+    S.lastMsg = `Week ${S.week + 1}: ${win ? "W" : "L"} ${youScore}–${oppScore} vs ${opp.nick}`;
+    S.week++;
+    if (S.week >= SEASON_GAMES) endRegularSeason();
+    else prepWeek();
+    if (win) store.wins++; else store.losses++;
+    saveStore(store);
+    saveSeason();
+  }
+  function standings() {
+    const S = state.season;
+    const rows = [{ you: true, name: state.team.name, nick: state.team.name, ovr: state.team.ovr, ...S.you },
+      ...S.teams.map((t, i) => ({ idx: i, name: t.name, nick: t.nick, ovr: t.ovr, color: t.color, w: t.w, l: t.l, pf: t.pf, pa: t.pa }))];
+    // record first, then point differential, then points scored
+    return rows.sort((a, b) => b.w - a.w || (b.pf - b.pa) - (a.pf - a.pa) || b.pf - a.pf);
+  }
+  function endRegularSeason() {
+    const S = state.season;
+    const table = standings();
+    S.seed = table.findIndex((r) => r.you) + 1;
+    S.playoffTeams = table.slice(0, PLAYOFF_SEEDS).map((r, i) => ({ seed: i + 1, idx: r.you ? null : r.idx }));
+    S.phase = S.seed <= PLAYOFF_SEEDS ? "clinched" : "out";
+  }
+  function startSeasonPlayoffs() {
+    const S = state.season;
+    S.phase = "playoffs";
+    const bye = S.seed === 1;
+    state.run = { round: bye ? 1 : 0, results: bye ? ["bye"] : [], used: [], mode: "season" };
+    setupRound();
+  }
+  // Playoff opponent: real seeds from your conference, then the other conference in the Super Bowl
+  function seasonPlayoffOpp(round) {
+    const S = state.season;
+    const field = S.playoffTeams.filter((p) => p.idx !== null && !state.run.used.includes(S.teams[p.idx].nick));
+    if (round === 3 || !field.length) return makeOpponent(ROUNDS[3].ovr + Math.round((rand() - 0.5) * 4), S.teams.map((t) => t.nick));
+    let pickT;
+    if (round === 0) pickT = field.find((p) => p.seed === 9 - S.seed) || field[field.length - 1]; // 2v7, 3v6, 4v5
+    else pickT = field[Math.floor(rand() * Math.min(2, field.length))]; // a top remaining seed
+    return S.teams[pickT.idx];
+  }
+
+  // ---- saving: a season can be continued later from the home page ----
+  function saveSeason() {
+    try {
+      const rosterIds = {};
+      for (const [k, p] of Object.entries(state.roster)) rosterIds[k] = p.id;
+      localStorage.setItem(SEASON_KEY, JSON.stringify({ teamName: state.team.name, color: state.color, randomDrafted: !!state.randomDrafted, rosterIds, season: state.season, run: state.run }));
+    } catch (e) {}
+  }
+  function loadSeasonSave() { try { return JSON.parse(localStorage.getItem(SEASON_KEY) || "null"); } catch (e) { return null; } }
+  function clearSeason() { try { localStorage.removeItem(SEASON_KEY); } catch (e) {} }
+  function resumeSeason() {
+    const sv = loadSeasonSave();
+    if (!sv) return;
+    const byId = {};
+    PLAYERS.forEach((p) => (byId[p.id] = p));
+    state.roster = {};
+    for (const [k, id] of Object.entries(sv.rosterIds)) if (byId[id]) state.roster[k] = byId[id];
+    if (Object.keys(state.roster).length < SLOTS.length) { clearSeason(); go("home"); return; }
+    state.teamName = sv.teamName; state.color = sv.color; state.randomDrafted = sv.randomDrafted;
+    const { units, names } = teamUnits(state.roster);
+    state.team = { name: sv.teamName, nick: sv.teamName, units, names, ovr: unitsOvr(units) };
+    state.season = sv.season; state.run = sv.run; state.mode = "season";
+    if (state.run && state.season.phase === "playoffs") go("pregame"); else go("season");
+  }
+
+  function kickoffWith(opp, scenario) {
+    state.game = E.newGame({ you: { ...state.team }, opp: { ...opp }, scenario });
+    state.offCat = null; state.defCat = null;
+    go("game");
+    maybeCpu();
+  }
+
+  function scenarioCard(sc, oppNick) {
+    const ballSide = sc.youOffense ? `Ball on your own ${sc.ballOn}` : `${esc(oppNick)} ball at their ${sc.ballOn}`;
+    return `<div class="scenario card ${sc.youOffense ? "off" : "def"}">
+      <div class="sc-tag">${sc.youOffense ? "COMEBACK DRIVE" : "PROTECT THE LEAD"}</div>
+      <div class="sc-score"><span>${esc(state.team.name)} <b>${sc.youScore}</b></span><span>${esc(oppNick)} <b>${sc.oppScore}</b></span></div>
+      <div class="sc-line">4th quarter · <b>${E.fmtClock(sc.clock)}</b> left · ${ballSide}</div>
+      <div class="sc-line">Timeouts — you: ${sc.youTO} · ${esc(oppNick)}: ${sc.oppTO}</div>
+      <div class="sc-goal">${E.scenarioGoal(sc)}</div>
+    </div>`;
+  }
+
+  function renderSeason() {
+    const S = state.season;
+    const t = state.team;
+    const c = teamColors();
+    const rec = `${S.you.w}–${S.you.l}`;
+    const table = standings();
+    let main = "";
+    if (S.phase === "regular") {
+      const opp = seasonOpp();
+      const rematch = S.schedule.slice(0, S.week).some((g) => g.opp === S.schedule[S.week].opp);
+      main = `
+        <p class="eyebrow center">Week ${S.week + 1} of ${SEASON_GAMES}${rematch ? " · Rematch" : ""}</p>
+        <div class="matchup card">
+          <div class="mteam">${helmet("", c.hex, c.num, { size: 84 })}<h3>${esc(t.name)}</h3><div class="ovr-badge ${tierClass(t.ovr)}"><span>${t.ovr}</span><small>OVR</small></div><div class="mrec">${rec}</div></div>
+          <div class="vs">VS</div>
+          <div class="mteam">${helmet("", opp.color, opp.numColor, { size: 84 })}<h3>${esc(opp.name)}</h3><div class="ovr-badge ${tierClass(opp.ovr)}"><span>${opp.ovr}</span><small>OVR</small></div><div class="mrec">${opp.w}–${opp.l}</div></div>
+        </div>
+        ${scenarioCard(S.scenario, opp.nick)}
+        <div class="cta-row center">
+          <button class="btn ghost" id="simGame" title="Skip this one and simulate the result">Sim game</button>
+          <button class="btn big" id="playWeek">Take the field →</button>
+        </div>`;
+    } else {
+      const seedTxt = S.seed === 1 ? "the #1 seed and a first-round bye" : S.seed <= PLAYOFF_SEEDS ? `the #${S.seed} seed — Wild Card round` : `#${S.seed} in the conference`;
+      main = S.phase === "out"
+        ? `<div class="card season-end loss"><h2>Season over</h2><p>${esc(t.name)} finished ${rec}, ${seedTxt}. Only the top ${PLAYOFF_SEEDS} make the playoffs.</p>
+            <div class="modal-actions"><button class="btn ghost" id="seasonAgain">Same team, new season</button><button class="btn" id="seasonRedraft">Redraft</button></div></div>`
+        : `<div class="card season-end win"><h2>${S.seed === 1 ? "🏆 Clinched the #1 seed!" : "Playoff bound!"}</h2><p>${esc(t.name)} finished ${rec} and earned ${seedTxt}.</p>
+            <div class="modal-actions"><button class="btn big" id="startPlayoffs">${S.seed === 1 ? "Start playoffs: Divisional →" : "Start playoffs: Wild Card →"}</button></div></div>`;
+    }
+    const sched = S.schedule.map((g, i) => {
+      const o = S.teams[g.opp];
+      const r = g.result;
+      const now = i === S.week && S.phase === "regular";
+      return `<li class="${now ? "now" : ""} ${r ? (r.win ? "w" : "l") : ""}"><span class="wk">${i + 1}</span><span class="dot" style="background:${o.color}"></span><span class="sn">${esc(o.nick)}</span><span class="sr">${r ? `${r.win ? "W" : "L"} ${r.you}–${r.opp}` : now ? "Next" : ""}</span></li>`;
+    }).join("");
+    const stand = table.map((r, i) => `<tr class="${r.you ? "you" : ""} ${i === PLAYOFF_SEEDS - 1 ? "cut" : ""}">
+        <td>${i + 1}</td><td class="tn">${r.you ? "⭐ " : ""}${esc(r.nick)}${i === 0 && S.week > 0 ? ' <em>bye</em>' : ""}</td><td>${r.w}–${r.l}</td><td>${r.pf - r.pa > 0 ? "+" : ""}${r.pf - r.pa}</td></tr>`).join("");
+    $app.innerHTML = `
+      <section class="season">
+        <div class="season-head">
+          <div><p class="eyebrow">Season</p><h1 class="team-title">${esc(t.name)}</h1></div>
+          <div class="season-rec"><b>${rec}</b><small>${S.phase === "regular" ? `Week ${S.week + 1} of ${SEASON_GAMES}` : "Final record"}</small></div>
+        </div>
+        ${S.lastMsg ? `<div class="lastmsg">${esc(S.lastMsg)}</div>` : ""}
+        <div class="season-grid">
+          <div class="season-main">${main}</div>
+          <div class="season-side">
+            <div class="card"><h3 class="unit-h">Standings</h3>
+              <table class="standings"><thead><tr><th>#</th><th>Team</th><th>W–L</th><th>Diff</th></tr></thead><tbody>${stand}</tbody></table>
+              <p class="fine">Top ${PLAYOFF_SEEDS} make the playoffs · #1 seed gets a bye · ties broken by point differential</p></div>
+            <div class="card"><h3 class="unit-h">Schedule</h3><ol class="sched">${sched}</ol></div>
+          </div>
+        </div>
+      </section>`;
+    const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = fn; };
+    on("playWeek", () => kickoffWith(seasonOpp(), S.scenario));
+    on("simGame", () => {
+      const opp = seasonOpp();
+      const win = rand() < winProb(state.team.ovr, opp.ovr);
+      const [ws, ls] = simScore(win ? state.team.ovr : opp.ovr, win ? opp.ovr : state.team.ovr);
+      finishWeek(win ? ws : ls, win ? ls : ws);
+      render(); window.scrollTo({ top: 0 });
+    });
+    on("startPlayoffs", startSeasonPlayoffs);
+    on("seasonAgain", startSeason);
+    on("seasonRedraft", () => { clearSeason(); startDraft(); });
   }
 
   // =================================================================
@@ -3654,7 +3965,7 @@ if (typeof module !== "undefined")
             ${tos(g.you.to)}
           </div>
           <div class="sb-mid">
-            <div class="sb-round">${state.run ? ROUNDS[state.run.round].name : ""} · 4TH</div>
+            <div class="sb-round">${state.mode === "season" && state.season && state.season.phase === "regular" ? `WEEK ${state.season.week + 1}` : state.run ? ROUNDS[state.run.round].name : ""} · 4TH</div>
             <div class="sb-clock ${g.clock <= 30 ? "urgent" : ""}">${E.fmtClock(g.clock)}</div>
             <div class="sb-clockstate ${g.phase !== "over" && g.clockRunning ? "live" : ""}">${g.phase === "over" ? "FINAL" : g.clockRunning ? "<i></i> clock running" : "■ clock stopped"}</div>
           </div>
@@ -3727,7 +4038,7 @@ if (typeof module !== "undefined")
 
   // Simple route / coverage diagrams for each play
   function diagram(p, side) {
-    const W = 120, H = 54, los = 38;
+    const W = 120, H = 60, los = 38;
     const O = (x, y) => `<circle cx="${x}" cy="${y}" r="2.6" fill="none" stroke="currentColor" stroke-width="1.2"/>`;
     const X = (x, y) => `<path d="M${x - 2.2} ${y - 2.2} L${x + 2.2} ${y + 2.2} M${x + 2.2} ${y - 2.2} L${x - 2.2} ${y + 2.2}" stroke="currentColor" stroke-width="1.2"/>`;
     const arrow = (d, cls = "rt") => `<path class="${cls}" d="${d}" fill="none" stroke-width="1.4" marker-end="url(#ah)"/>`;
@@ -3792,6 +4103,61 @@ if (typeof module !== "undefined")
       jailbreak: arrow(`M108 ${los + 2} L106 ${los + 4} L90 ${los + 2} L84 ${los - 10}`) + arrow(`M52 ${los + 4} L84 ${los + 2}`, "rt2") + arrow(`M60 ${los + 4} L80 ${los - 2}`, "rt2"),
       shovel: arrow(`M60 ${los + 17} L58 ${los + 6}`) + arrow(`M60 ${los + 11} L52 ${los + 13}`, "rt2"),
       smoke: arrow(`M12 ${los + 2} L10 ${los + 3}`) + arrow(`M60 ${los + 11} L14 ${los + 3}`, "rt2"),
+      // ---- inside runs ----
+      duo: arrow(`M60 ${los + 17} L60 ${los + 2} L62 ${los - 14}`) + arrow(`M52 ${los + 4} L58 ${los - 2}`, "rt2") + arrow(`M68 ${los + 4} L62 ${los - 2}`, "rt2"),
+      splitzone: arrow(`M60 ${los + 17} L64 ${los + 4} L56 ${los - 14}`) + arrow(`M80 ${los + 5} C70 ${los + 8} 56 ${los + 8} 48 ${los + 4}`, "rt2"),
+      wham: arrow(`M60 ${los + 17} L60 ${los + 2} L61 ${los - 14}`) + arrow(`M80 ${los + 5} C74 ${los + 6} 70 ${los + 4} 64 ${los}`, "rt2"),
+      fbdive: arrow(`M60 ${los + 17} L60 ${los + 12}`, "rt2") + arrow(`M60 ${los + 11} L60 ${los - 10}`),
+      qbpower: arrow(`M60 ${los + 11} L66 ${los + 2} L68 ${los - 12}`) + arrow(`M52 ${los + 6} C58 ${los + 9} 66 ${los + 8} 72 ${los + 2}`, "rt2") + arrow(`M60 ${los + 17} L68 ${los + 6}`, "rt2"),
+      delay: `<circle cx="60" cy="${los + 15}" r="1.6" fill="currentColor"/>` + arrow(`M60 ${los + 17} L64 ${los + 15} L60 ${los + 10} L58 ${los - 14}`),
+      dart: arrow(`M60 ${los + 17} L60 ${los + 2} L58 ${los - 14}`) + arrow(`M68 ${los + 4} C64 ${los + 8} 58 ${los + 7} 54 ${los + 1}`, "rt2"),
+      bash: arrow(`M60 ${los + 11} L58 ${los + 2} L57 ${los - 12}`) + arrow(`M60 ${los + 17} C70 ${los + 16} 82 ${los + 10} 88 ${los - 2}`, "rt2"),
+      statue: `<circle cx="60" cy="${los + 10}" r="1.6" fill="currentColor"/>` + arrow(`M60 ${los + 17} C54 ${los + 13} 50 ${los + 4} 44 ${los - 14}`),
+      // ---- outside runs ----
+      pinpull: arrow(`M60 ${los + 17} C74 ${los + 14} 88 ${los + 8} 92 ${los - 12}`) + arrow(`M52 ${los + 6} C64 ${los + 9} 76 ${los + 8} 84 ${los + 2}`, "rt2"),
+      bucksweep: arrow(`M60 ${los + 17} C76 ${los + 16} 92 ${los + 10} 96 ${los - 12}`) + arrow(`M52 ${los + 6} C66 ${los + 9} 80 ${los + 8} 88 ${los + 2}`, "rt2") + arrow(`M68 ${los + 6} C76 ${los + 8} 84 ${los + 6} 90 ${los + 1}`, "rt2"),
+      stretch: arrow(`M60 ${los + 17} C74 ${los + 16} 90 ${los + 12} 98 ${los - 6}`),
+      crack: arrow(`M60 ${los + 17} C78 ${los + 18} 96 ${los + 8} 100 ${los - 14}`) + arrow(`M108 ${los + 2} L94 ${los - 4}`, "rt2"),
+      reverse: arrow(`M60 ${los + 17} L44 ${los + 14}`, "rt2") + arrow(`M108 ${los + 2} C80 ${los + 14} 50 ${los + 14} 30 ${los + 6} C20 ${los} 16 ${los - 6} 14 ${los - 14}`),
+      triple: arrow(`M60 ${los + 17} L60 ${los - 6}`, "rt2") + arrow(`M60 ${los + 11} L82 ${los + 4}`) + arrow(`M82 ${los + 4} L98 ${los - 10}`, "rt2"),
+      bootkeep: arrow(`M60 ${los + 17} L74 ${los + 10}`, "rt2") + arrow(`M60 ${los + 11} C48 ${los + 12} 36 ${los + 6} 30 ${los - 12}`),
+      lead: arrow(`M60 ${los + 17} C74 ${los + 16} 88 ${los + 10} 94 ${los - 12}`) + arrow(`M60 ${los + 11} C70 ${los + 10} 82 ${los + 6} 88 ${los - 2}`, "rt2"),
+      // ---- quick game ----
+      yoption: arrow(`M80 ${los + 3} L80 ${los - 8} L88 ${los - 8}`) + arrow(`M80 ${los - 8} L72 ${los - 8}`, "rt2"),
+      quickout: arrow(`M12 ${los + 2} L12 ${los - 6} L4 ${los - 6}`) + arrow(`M108 ${los + 2} L108 ${los - 6} L116 ${los - 6}`),
+      glance: arrow(`M12 ${los + 2} L12 ${los - 8} L24 ${los - 22}`) + arrow(`M60 ${los + 17} L60 ${los + 6}`, "rt2"),
+      texas: arrow(`M60 ${los + 17} L74 ${los + 10} L66 ${los - 4}`) + arrow(`M80 ${los + 3} L80 ${los - 20}`, "rt2"),
+      hank: arrow(`M12 ${los + 2} L12 ${los - 12} L15 ${los - 9}`) + arrow(`M108 ${los + 2} L108 ${los - 12} L105 ${los - 9}`) + arrow(`M80 ${los + 3} L76 ${los - 10} L68 ${los - 8}`, "rt2"),
+      whip: arrow(`M80 ${los + 3} L78 ${los - 4} L92 ${los - 4}`) + arrow(`M108 ${los + 2} L108 ${los - 22}`, "rt2"),
+      tripsstick: arrow(`M80 ${los + 3} L80 ${los - 9} L76 ${los - 8}`) + arrow(`M96 ${los + 3} L104 ${los - 2}`, "rt2") + arrow(`M108 ${los + 2} L108 ${los - 22}`, "rt2") + `<circle cx="96" cy="${los + 4}" r="2.6" fill="none" stroke="currentColor" stroke-width="1.2"/>`,
+      // ---- sideline ----
+      china: arrow(`M80 ${los + 3} L82 ${los - 6} L76 ${los - 8} L100 ${los - 8}`) + arrow(`M108 ${los + 2} L108 ${los - 16} L116 ${los - 28}`, "rt2"),
+      boot: `<circle cx="60" cy="${los + 12}" r="1.6" fill="currentColor"/>` + arrow(`M60 ${los + 11} L86 ${los + 10}`, "rt2") + arrow(`M80 ${los + 3} L104 ${los - 2}`) + arrow(`M108 ${los + 2} L108 ${los - 14} L116 ${los - 14}`),
+      deepout: arrow(`M108 ${los + 2} L108 ${los - 22} L116 ${los - 22}`) + arrow(`M12 ${los + 2} L12 ${los - 22} L4 ${los - 22}`, "rt2"),
+      zout: arrow(`M12 ${los + 2} L16 ${los - 4} L12 ${los - 9} L4 ${los - 9}`),
+      swirl: arrow(`M108 ${los + 2} C102 ${los - 6} 102 ${los - 14} 116 ${los - 16}`),
+      tecorner: arrow(`M80 ${los + 3} L80 ${los - 12} L100 ${los - 28}`) + arrow(`M108 ${los + 2} L108 ${los - 10} L100 ${los - 10}`, "rt2"),
+      // ---- middle ----
+      hilo: arrow(`M12 ${los + 2} L18 ${los - 4} L100 ${los - 5}`) + arrow(`M108 ${los + 2} L104 ${los - 16} L24 ${los - 17}`),
+      choice: arrow(`M80 ${los + 3} L80 ${los - 9} L70 ${los - 9}`) + arrow(`M80 ${los - 9} L90 ${los - 9}`, "rt2"),
+      bow: arrow(`M80 ${los + 3} L80 ${los - 14} L68 ${los - 32}`) + arrow(`M12 ${los + 2} L12 ${los - 30}`, "rt2") + arrow(`M108 ${los + 2} L108 ${los - 30}`, "rt2"),
+      over: arrow(`M12 ${los + 2} L14 ${los - 10} L100 ${los - 22}`),
+      mread: arrow(`M80 ${los + 3} L72 ${los - 14} L64 ${los - 30}`) + arrow(`M72 ${los - 14} L72 ${los - 18}`, "rt2"),
+      tecross: arrow(`M80 ${los + 3} L78 ${los - 2} L70 ${los - 12} L30 ${los - 14}`),
+      // ---- deep ----
+      doublepost: arrow(`M108 ${los + 2} L108 ${los - 14} L90 ${los - 34}`) + arrow(`M80 ${los + 3} L80 ${los - 10} L66 ${los - 30}`),
+      stopgo: arrow(`M12 ${los + 2} L12 ${los - 10} L14 ${los - 8} L12 ${los - 34}`),
+      skinny: arrow(`M108 ${los + 2} L108 ${los - 14} L100 ${los - 34}`),
+      bang8: `<circle cx="60" cy="${los + 12}" r="1.6" fill="currentColor"/>` + arrow(`M12 ${los + 2} L12 ${los - 8} L32 ${los - 32}`),
+      tripsvert: arrow(`M80 ${los + 3} L80 ${los - 34}`) + arrow(`M96 ${los + 3} L96 ${los - 34}`) + arrow(`M108 ${los + 2} L108 ${los - 34}`) + `<circle cx="96" cy="${los + 4}" r="2.6" fill="none" stroke="currentColor" stroke-width="1.2"/>`,
+      wheelpost: arrow(`M60 ${los + 17} C80 ${los + 16} 100 ${los + 8} 104 ${los - 30}`) + arrow(`M108 ${los + 2} L108 ${los - 12} L92 ${los - 30}`),
+      // ---- screens ----
+      throwback: arrow(`M60 ${los + 11} L78 ${los + 10}`, "rt2") + arrow(`M60 ${los + 17} L36 ${los + 14} L30 ${los - 2}`),
+      rocket: arrow(`M108 ${los + 2} C96 ${los + 12} 84 ${los + 14} 80 ${los + 10} C88 ${los + 10} 96 ${los + 8} 100 ${los - 4}`),
+      tescreen: arrow(`M80 ${los + 5} L86 ${los + 8} L90 ${los - 4}`) + arrow(`M68 ${los + 4} L84 ${los + 1}`, "rt2"),
+      flare: arrow(`M60 ${los + 17} C76 ${los + 18} 92 ${los + 12} 100 ${los + 2}`) + arrow(`M108 ${los + 2} L104 ${los - 4}`, "rt2"),
+      rpobubble: `<circle cx="60" cy="${los + 14}" r="1.6" fill="currentColor"/>` + arrow(`M80 ${los + 5} C86 ${los + 10} 94 ${los + 8} 96 ${los - 4}`),
+      dblscreen: arrow(`M108 ${los + 2} L108 ${los - 2} L94 ${los + 3} L86 ${los - 10}`) + arrow(`M60 ${los + 17} L40 ${los + 12} L36 ${los - 4}`, "rt2"),
     };
     if (side === "off") {
       body = line + offForm + (R[p.id] || R[p.anim] || "");
@@ -3819,6 +4185,22 @@ if (typeof module !== "undefined")
       if (pt.includes("c2m")) parts += X(34, 6) + X(86, 6);
       if (pt.includes("blitz")) parts += zones.blitz;
       if (pt.includes("box")) parts += zones.box;
+      // play-specific marks: who blitzes, spies, robs or doubles
+      const bz = (x1, y1, x2, y2) => arrow(`M${x1} ${y1} L${x2} ${y2}`, "rt-bad");
+      const eye = (x, y) => X(x, y) + `<circle cx="${x}" cy="${y}" r="4.2" fill="none" stroke="currentColor" stroke-dasharray="1.4 1.4" stroke-opacity=".7"/>`;
+      const EXTRA = {
+        cornerblitz: bz(108, los - 10, 92, los + 6), safetyblitz: bz(86, 8, 70, los + 6), overload: bz(84, los - 14, 76, los + 6) + bz(92, los - 12, 82, los + 6),
+        zoneblitz: arrow(`M76 ${los - 4} L84 ${los - 16}`, "rt2"), nickel: bz(84, los - 12, 72, los + 6), dimeblitz: bz(100, los - 12, 88, los + 6),
+        allout: bz(30, los - 12, 46, los + 6) + bz(90, los - 12, 76, los + 6), pinch: bz(48, los - 4, 54, los + 4) + bz(72, los - 4, 66, los + 4),
+        dog: bz(52, los - 14, 56, los + 6) + bz(68, los - 14, 64, los + 6), crossdog: bz(52, los - 14, 66, los + 6) + bz(68, los - 14, 54, los + 6),
+        sim: bz(84, los - 12, 74, los + 6) + arrow(`M52 ${los - 4} L44 ${los - 16}`, "rt2"), fieldblitz: bz(96, los - 12, 82, los + 6),
+        spy: eye(60, los - 12), doublespy: eye(52, los - 12) + eye(68, los - 12), lurk: eye(60, los - 16), c1robber: eye(60, los - 16), robber2: eye(60, los - 16), robberbox: eye(60, los - 14),
+        bracket: X(18, los - 18) + X(10, 6), c1double: X(18, los - 18), hole: eye(60, los - 14),
+        tampa2: arrow(`M60 ${los - 10} L60 ${los - 28}`, "rt2"), runblitz: bz(44, los - 12, 52, los + 4) + bz(76, los - 12, 68, los + 4), plug: bz(52, los - 12, 56, los + 2) + bz(68, los - 12, 64, los + 2),
+        wide9: X(36, los - 4) + X(84, los - 4), dlslant: [52, 60, 68, 76].map((x) => arrow(`M${x} ${los - 4} L${x + 6} ${los + 3}`, "rt-bad")).join(""),
+        goalline: X(30, los - 6) + X(90, los - 6), jumpball: `<ellipse cx="60" cy="5" rx="50" ry="4" class="zn"/>`,
+      };
+      parts += EXTRA[p.id] || "";
       body = line + parts;
     }
     return `<svg class="diagram" viewBox="0 0 ${W} ${H}"><defs><marker id="ah" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0 L6 3 L0 6 z" fill="context-stroke"/></marker></defs>${body}</svg>`;
@@ -4071,10 +4453,12 @@ if (typeof module !== "undefined")
   function showResult() {
     const g = state.game;
     if (!g || !g.result) return;
+    if (state.mode === "season" && state.season && state.season.phase === "regular") return showSeasonResult(g);
     const run = state.run;
     const win = g.result.win;
     const isFinal = run.round === ROUNDS.length - 1;
     const first = recordedFor !== g;
+    const seasonMode = state.mode === "season";
     if (first) {
       recordedFor = g;
       run.results[run.round] = win;
@@ -4085,6 +4469,7 @@ if (typeof module !== "undefined")
         store.hof = store.hof.slice(0, 20);
       }
       saveStore(store);
+      if (seasonMode) { if (win && !isFinal) saveSeason(); else clearSeason(); }
       render();
     }
     let title, body, actions;
@@ -4100,14 +4485,27 @@ if (typeof module !== "undefined")
     } else {
       title = "Season over";
       body = `${esc(g.opp.nick)} ${g.opp.score}, ${esc(state.team.name)} ${g.you.score}. ${g.result.ot ? esc(g.result.ot) + " " : ""}Eliminated in the ${ROUNDS[run.round].name}.`;
-      actions = `<button class="btn ghost" id="rRetry">Same team, new run</button><button class="btn" id="rDraft">Redraft</button>`;
+      actions = `<button class="btn ghost" id="rRetry">Same team, new ${seasonMode ? "season" : "run"}</button><button class="btn" id="rDraft">Redraft</button>`;
     }
     showOverlay(`<div class="modal result ${win ? "win" : "loss"}"><h2>${title}</h2><p>${body}</p>${bracket()}<div class="modal-actions">${actions}</div><button class="link" data-close>View play-by-play</button></div>`);
     const on = (id, fn) => { const el = document.getElementById(id); if (el) el.onclick = () => { hideOverlay(); fn(); }; };
     on("rNext", () => { run.round++; setupRound(); });
     on("rDraft", () => startDraft());
     on("rHome", () => go("home"));
-    on("rRetry", startRun);
+    on("rRetry", seasonMode ? startSeason : startRun);
+  }
+  function showSeasonResult(g) {
+    const S = state.season;
+    const wk = S.week + 1;
+    const first = recordedFor !== g;
+    if (first) { recordedFor = g; finishWeek(g.you.score, g.opp.score); render(); }
+    const win = g.result.win;
+    const last = S.week >= SEASON_GAMES;
+    const title = win ? `Week ${wk}: Victory!` : `Week ${wk}: Loss`;
+    const body = `${esc(state.team.name)} ${g.you.score}, ${esc(g.opp.nick)} ${g.opp.score}. ${g.result.ot ? esc(g.result.ot) + " " : ""}You're ${S.you.w}–${S.you.l}.${last ? " That's the end of the regular season." : ""}`;
+    showOverlay(`<div class="modal result ${win ? "win" : "loss"}"><h2>${title}</h2><p>${body}</p>
+      <div class="modal-actions"><button class="btn" id="sNext">${last ? "See final standings →" : `Week ${wk + 1} →`}</button></div><button class="link" data-close>View play-by-play</button></div>`);
+    document.getElementById("sNext").onclick = () => { hideOverlay(); go("season"); };
   }
 
   function confetti() {
